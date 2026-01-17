@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { gameState, snake } from '../stores/stores';
+  import { gameState, snakeLength } from '../stores/stores';
 </script>
 
 <div class="score-info">
@@ -9,7 +9,7 @@
   </div>
   <div class="score-item">
     <span class="score-label">Length</span>
-    <span class="score-value" data-element-id="length-display">{$snake.segments.length}</span>
+    <span class="score-value" data-element-id="length-display">{$snakeLength}</span>
   </div>
   <div class="score-item">
     <span class="score-label">Moves</span>

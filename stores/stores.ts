@@ -1,5 +1,5 @@
 import { writable } from 'svelte/store';
-import type { Frame, GameState, LevelDefinition, Snake } from '../types/models';
+import type { Frame, GameState, LevelDefinition } from '../types/models';
 import type { GameEvent } from '../types/events';
 import { WasmGameEngine } from '../engine/WasmGameEngine';
 
@@ -11,10 +11,7 @@ export const gameState = writable<GameState>({
   totalFood: 0
 });
 
-export const snake = writable<Snake>({
-  segments: [],
-  direction: null
-});
+export const snakeLength = writable<number>(0);
 
 export const level = writable<LevelDefinition | null>(null);
 export const frame = writable<Frame | null>(null);
@@ -28,8 +25,20 @@ export function connectGameEngineToStores(engine: WasmGameEngine): void {
       case 'frameChanged':
         frame.set(event.frame);
         gameState.set(event.frame.state);
-        snake.set(event.frame.snake);
+        snakeLength.set(countSnakeSegments(event.frame));
         break;
     }
   });
+}
+
+function countSnakeSegments(frame: Frame): number {
+  let count = 0;
+  for (const row of frame.grid) {
+    for (const cell of row) {
+      if (cell === 'SnakeHead' || cell === 'SnakeBody') {
+        count += 1;
+      }
+    }
+  }
+  return count;
 }

@@ -1,4 +1,4 @@
-import type { Frame, LevelDefinition } from '../types/models';
+import type { ContractError, Frame, LevelDefinition } from '../types/models';
 import type { GameEvent, GameEventListener } from '../types/events';
 import type { Direction } from '../types/models';
 import init, { WasmGameEngine as RustEngine, getLevels, log } from 'gsnake-wasm';
@@ -20,11 +20,21 @@ export class WasmGameEngine {
       return;
     }
 
-    // Initialize the WASM module
-    await init();
+    // Initialize the WASM module (single retry)
+    try {
+      await init();
+    } catch (error) {
+      console.error('WASM init failed, retrying once:', error);
+      await init();
+    }
     log('gSnake WASM engine initialized');
 
-    this.levels = levels ?? (getLevels() as unknown as LevelDefinition[]);
+    try {
+      this.levels = levels ?? (getLevels() as unknown as LevelDefinition[]);
+    } catch (error) {
+      this.handleContractError(error, 'Failed to load levels');
+      throw error;
+    }
     this.currentLevelIndex = startLevel - 1;
 
     // Load the first level
@@ -51,7 +61,12 @@ export class WasmGameEngine {
     this.currentLevelIndex = levelIndex;
 
     // Create new WASM engine instance
-    this.wasmEngine = new RustEngine(level);
+    try {
+      this.wasmEngine = new RustEngine(level);
+    } catch (error) {
+      this.handleContractError(error, 'Failed to initialize engine');
+      throw error;
+    }
 
     // Register frame callback
     this.wasmEngine.onFrame((frame: Frame) => {
@@ -68,83 +83,18 @@ export class WasmGameEngine {
       type: 'levelChanged',
       level: level
     });
-
-    // Get initial frame and emit events
-    if (this.wasmEngine) {
-      const frame = this.wasmEngine.getFrame() as Frame;
-      this.handleFrameUpdate(frame);
-    }
   }
 
   private handleFrameUpdate(frame: Frame): void {
-    const normalizedFrame = this.normalizeFrame(frame);
-
     this.emitEvent({
       type: 'frameChanged',
-      frame: normalizedFrame
+      frame: frame
     });
 
     // Handle level completion
-    if (normalizedFrame.state.status === 'LevelComplete') {
+    if (frame.state.status === 'LevelComplete') {
       this.handleLevelComplete();
     }
-  }
-
-  private normalizeFrame(frame: Frame): Frame {
-    const normalizeCell = (cell: unknown): string => {
-      if (typeof cell === 'string') return cell;
-      if (typeof cell === 'number') {
-        const map = ['Empty', 'SnakeHead', 'SnakeBody', 'Food', 'Obstacle', 'Exit'];
-        return map[cell] ?? 'Empty';
-      }
-      if (cell && typeof cell === 'object') {
-        const key = Object.keys(cell as Record<string, unknown>)[0];
-        if (key) return key;
-      }
-      return 'Empty';
-    };
-
-    const normalizeDirection = (direction: unknown): string | null => {
-      if (direction === null || direction === undefined) return null;
-      if (typeof direction === 'string') return direction;
-      if (typeof direction === 'number') {
-        const map = ['North', 'South', 'East', 'West'];
-        return map[direction] ?? null;
-      }
-      if (direction && typeof direction === 'object') {
-        const key = Object.keys(direction as Record<string, unknown>)[0];
-        if (key) return key;
-      }
-      return null;
-    };
-
-    const normalizeStatus = (status: unknown): string => {
-      if (typeof status === 'string') return status;
-      if (typeof status === 'number') {
-        const map = ['Playing', 'GameOver', 'LevelComplete', 'AllComplete'];
-        return map[status] ?? 'Playing';
-      }
-      if (status && typeof status === 'object') {
-        const key = Object.keys(status as Record<string, unknown>)[0];
-        if (key) return key;
-      }
-      return 'Playing';
-    };
-
-    return {
-      ...frame,
-      grid: frame.grid.map(row =>
-        row.map(cell => normalizeCell(cell) as Frame['grid'][number][number])
-      ),
-      state: {
-        ...frame.state,
-        status: normalizeStatus(frame.state.status) as Frame['state']['status']
-      },
-      snake: {
-        ...frame.snake,
-        direction: normalizeDirection(frame.snake.direction) as Frame['snake']['direction']
-      }
-    };
   }
 
   private async handleLevelComplete(): Promise<void> {
@@ -166,7 +116,7 @@ export class WasmGameEngine {
     try {
       this.wasmEngine.processMove(direction);
     } catch (error) {
-      console.error('Error processing move:', error);
+      this.handleContractError(error, 'Error processing move');
     }
   }
 
@@ -191,5 +141,19 @@ export class WasmGameEngine {
     for (const listener of this.listeners) {
       listener(event);
     }
+  }
+
+  private handleContractError(error: unknown, fallbackMessage: string): void {
+    if (this.isContractError(error)) {
+      console.error(`[ContractError:${error.kind}] ${error.message}`, error.context ?? {});
+      return;
+    }
+    console.error(fallbackMessage, error);
+  }
+
+  private isContractError(error: unknown): error is ContractError {
+    if (!error || typeof error !== 'object') return false;
+    const candidate = error as ContractError;
+    return typeof candidate.kind === 'string' && typeof candidate.message === 'string';
   }
 }
