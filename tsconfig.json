@@ -15,5 +15,5 @@
     "forceConsistentCasingInFileNames": true
   },
   "include": ["**/*.d.ts", "**/*.ts", "**/*.js", "**/*.svelte"],
-  "exclude": ["node_modules", "dist", "pkg"]
+  "exclude": ["node_modules", "dist", "pkg", "tests"]
 }
