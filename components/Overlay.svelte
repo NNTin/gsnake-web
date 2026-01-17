@@ -1,16 +1,20 @@
 <script lang="ts">
-  import { gameState } from '../stores/stores';
+  import { engineError, gameState } from '../stores/stores';
   import GameOverModal from './GameOverModal.svelte';
   import GameCompleteModal from './GameCompleteModal.svelte';
+  import EngineErrorModal from './EngineErrorModal.svelte';
 
+  $: showEngineError = $engineError !== null;
   $: showGameOver = $gameState.status === 'GameOver';
   $: showGameComplete = $gameState.status === 'AllComplete';
-  $: active = showGameOver || showGameComplete;
+  $: active = showEngineError || showGameOver || showGameComplete;
 </script>
 
 {#if active}
   <div class="overlay active" data-element-id="overlay">
-    {#if showGameOver}
+    {#if showEngineError}
+      <EngineErrorModal />
+    {:else if showGameOver}
       <GameOverModal />
     {:else if showGameComplete}
       <GameCompleteModal />

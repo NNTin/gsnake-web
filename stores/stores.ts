@@ -1,5 +1,5 @@
 import { writable } from 'svelte/store';
-import type { Frame, GameState, LevelDefinition } from '../types/models';
+import type { ContractError, Frame, GameState, LevelDefinition } from '../types/models';
 import type { GameEvent } from '../types/events';
 import { WasmGameEngine } from '../engine/WasmGameEngine';
 
@@ -15,6 +15,23 @@ export const snakeLength = writable<number>(0);
 
 export const level = writable<LevelDefinition | null>(null);
 export const frame = writable<Frame | null>(null);
+export const engineError = writable<ContractError | null>(null);
+
+function shouldExposeContractDebug(): boolean {
+  if (typeof window === 'undefined') return false;
+  const params = new URLSearchParams(window.location.search);
+  return params.get('contractTest') === '1';
+}
+
+function updateContractDebug(payload: { frame?: Frame | null; error?: ContractError | null }): void {
+  if (!shouldExposeContractDebug()) return;
+  const windowAny = window as typeof window & { __gsnakeContract?: unknown };
+  const existing = (windowAny.__gsnakeContract as Record<string, unknown>) ?? {};
+  windowAny.__gsnakeContract = {
+    ...existing,
+    ...payload,
+  };
+}
 
 export function connectGameEngineToStores(engine: WasmGameEngine): void {
   engine.addEventListener((event: GameEvent) => {
@@ -26,6 +43,12 @@ export function connectGameEngineToStores(engine: WasmGameEngine): void {
         frame.set(event.frame);
         gameState.set(event.frame.state);
         snakeLength.set(countSnakeSegments(event.frame));
+        engineError.set(null);
+        updateContractDebug({ frame: event.frame, error: null });
+        break;
+      case 'engineError':
+        engineError.set(event.error);
+        updateContractDebug({ error: event.error });
         break;
     }
   });

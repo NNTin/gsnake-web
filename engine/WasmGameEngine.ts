@@ -25,14 +25,23 @@ export class WasmGameEngine {
       await init();
     } catch (error) {
       console.error('WASM init failed, retrying once:', error);
-      await init();
+      try {
+        await init();
+      } catch (retryError) {
+        this.handleContractError(
+          retryError,
+          'Failed to initialize WASM module',
+          'initializationFailed'
+        );
+        throw retryError;
+      }
     }
     log('gSnake WASM engine initialized');
 
     try {
       this.levels = levels ?? (getLevels() as unknown as LevelDefinition[]);
     } catch (error) {
-      this.handleContractError(error, 'Failed to load levels');
+      this.handleContractError(error, 'Failed to load levels', 'initializationFailed');
       throw error;
     }
     this.currentLevelIndex = startLevel - 1;
@@ -64,7 +73,7 @@ export class WasmGameEngine {
     try {
       this.wasmEngine = new RustEngine(level);
     } catch (error) {
-      this.handleContractError(error, 'Failed to initialize engine');
+      this.handleContractError(error, 'Failed to initialize engine', 'initializationFailed');
       throw error;
     }
 
@@ -143,9 +152,18 @@ export class WasmGameEngine {
     }
   }
 
-  private handleContractError(error: unknown, fallbackMessage: string): void {
-    if (this.isContractError(error)) {
-      console.error(`[ContractError:${error.kind}] ${error.message}`, error.context ?? {});
+  private handleContractError(
+    error: unknown,
+    fallbackMessage: string,
+    fallbackKind: ContractError['kind'] = 'internalError'
+  ): void {
+    const contractError = this.normalizeContractError(error, fallbackMessage, fallbackKind);
+    if (contractError) {
+      this.emitEvent({ type: 'engineError', error: contractError });
+      console.error(
+        `[ContractError:${contractError.kind}] ${contractError.message}`,
+        contractError.context ?? {}
+      );
       return;
     }
     console.error(fallbackMessage, error);
@@ -155,5 +173,19 @@ export class WasmGameEngine {
     if (!error || typeof error !== 'object') return false;
     const candidate = error as ContractError;
     return typeof candidate.kind === 'string' && typeof candidate.message === 'string';
+  }
+
+  private normalizeContractError(
+    error: unknown,
+    fallbackMessage: string,
+    fallbackKind: ContractError['kind']
+  ): ContractError | null {
+    if (this.isContractError(error)) return error;
+    const detail = error instanceof Error ? error.message : String(error);
+    return {
+      kind: fallbackKind,
+      message: fallbackMessage,
+      context: { detail }
+    };
   }
 }
