@@ -16,11 +16,10 @@
     
     // Connect stores BEFORE init so we catch the initial events
     connectGameEngineToStores(gameEngine);
-    await gameEngine.init(null, startLevel);
-
-    // @ts-ignore - Temporary ignore until KeyboardHandler is updated
     keyboardHandler = new KeyboardHandler(gameEngine);
     keyboardHandler.attach();
+
+    await gameEngine.init(null, startLevel);
   });
 
   onDestroy(() => {

@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "npm run build:wasm && vite build",
+    "build": "npm run build:types && npm run build:wasm && vite build",
+    "build:types": "python3 ../scripts/generate_ts_types.py",
     "build:wasm": "python3 ../scripts/build_wasm.py",
     "preview": "vite preview",
     "check": "svelte-check --tsconfig ./tsconfig.json"

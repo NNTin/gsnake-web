@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { CellType } from '../types';
+  import type { CellType } from '../types/models';
 
   export let type: CellType;
 
@@ -8,11 +8,11 @@
 
   function getTypeClass(t: CellType): string {
     switch (t) {
-      case CellType.SnakeHead: return 'snake-head';
-      case CellType.SnakeBody: return 'snake-body';
-      case CellType.Food: return 'food';
-      case CellType.Obstacle: return 'obstacle';
-      case CellType.Exit: return 'exit';
+      case 'SnakeHead': return 'snake-head';
+      case 'SnakeBody': return 'snake-body';
+      case 'Food': return 'food';
+      case 'Obstacle': return 'obstacle';
+      case 'Exit': return 'exit';
       default: return '';
     }
   }

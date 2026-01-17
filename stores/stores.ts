@@ -1,10 +1,10 @@
 import { writable } from 'svelte/store';
-import type { GameState, Snake, Level, GameEvent } from '../types';
-import { GameStatus } from '../types';
+import type { Frame, GameState, LevelDefinition, Snake } from '../types/models';
+import type { GameEvent } from '../types/events';
 import { WasmGameEngine } from '../engine/WasmGameEngine';
 
 export const gameState = writable<GameState>({
-  status: GameStatus.Playing,
+  status: 'Playing',
   currentLevel: 1,
   moves: 0,
   foodCollected: 0,
@@ -16,24 +16,19 @@ export const snake = writable<Snake>({
   direction: null
 });
 
-export const level = writable<Level | null>(null);
+export const level = writable<LevelDefinition | null>(null);
+export const frame = writable<Frame | null>(null);
 
 export function connectGameEngineToStores(engine: WasmGameEngine): void {
   engine.addEventListener((event: GameEvent) => {
     switch (event.type) {
-      case 'stateChanged':
-        gameState.set(event.state);
-        break;
-      case 'snakeChanged':
-        snake.set(event.snake);
-        break;
       case 'levelChanged':
         level.set(event.level);
         break;
-      case 'gridDirty':
-        // Components derive grid state from snake and level stores, 
-        // so explicit handling of gridDirty isn't required here 
-        // as long as snake/level/state events are fired appropriately.
+      case 'frameChanged':
+        frame.set(event.frame);
+        gameState.set(event.frame.state);
+        snake.set(event.frame.snake);
         break;
     }
   });

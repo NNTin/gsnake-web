@@ -1,11 +1,10 @@
 <script lang="ts">
   import { gameState } from '../stores/stores';
-  import { GameStatus } from '../types';
   import GameOverModal from './GameOverModal.svelte';
   import GameCompleteModal from './GameCompleteModal.svelte';
 
-  $: showGameOver = $gameState.status === GameStatus.GameOver;
-  $: showGameComplete = $gameState.status === GameStatus.AllComplete;
+  $: showGameOver = $gameState.status === 'GameOver';
+  $: showGameComplete = $gameState.status === 'AllComplete';
   $: active = showGameOver || showGameComplete;
 </script>
 

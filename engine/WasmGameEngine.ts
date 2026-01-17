@@ -1,4 +1,6 @@
-import type { Level, GameEvent, GameEventListener } from '../types';
+import type { Frame, LevelDefinition } from '../types/models';
+import type { GameEvent, GameEventListener } from '../types/events';
+import type { Direction } from '../types/models';
 import init, { WasmGameEngine as RustEngine, getLevels, log } from 'gsnake-wasm';
 
 /**
@@ -9,10 +11,10 @@ export class WasmGameEngine {
   private wasmEngine: RustEngine | null = null;
   private listeners: GameEventListener[] = [];
   private initialized = false;
-  private levels: Level[] = [];
+  private levels: LevelDefinition[] = [];
   private currentLevelIndex = 0;
 
-  async init(levels: Level[] | null = null, startLevel: number = 1): Promise<void> {
+  async init(levels: LevelDefinition[] | null = null, startLevel: number = 1): Promise<void> {
     if (this.initialized) {
       console.warn('WasmGameEngine already initialized');
       return;
@@ -22,7 +24,7 @@ export class WasmGameEngine {
     await init();
     log('gSnake WASM engine initialized');
 
-    this.levels = levels ?? (getLevels() as unknown as Level[]);
+    this.levels = levels ?? (getLevels() as unknown as LevelDefinition[]);
     this.currentLevelIndex = startLevel - 1;
 
     // Load the first level
@@ -48,36 +50,19 @@ export class WasmGameEngine {
     const level = this.levels[levelIndex];
     this.currentLevelIndex = levelIndex;
 
-    // Convert TypeScript Level to match Rust structure
-    // Note: level.snake in JSON/Types is just Position[] (segments), 
-    // but Rust expects Snake struct { segments, direction }
-    const rustLevel = {
-      grid_size: {
-        width: level.gridSize.width,
-        height: level.gridSize.height
-      },
-      snake: {
-        segments: level.snake.map((seg: any) => ({ x: seg.x, y: seg.y })),
-        direction: null
-      },
-      obstacles: level.obstacles.map((obs: any) => ({ x: obs.x, y: obs.y })),
-      food: level.food.map((f: any) => ({ x: f.x, y: f.y })),
-      exit: { x: level.exit.x, y: level.exit.y }
-    };
-
     // Create new WASM engine instance
-    this.wasmEngine = new RustEngine(rustLevel);
+    this.wasmEngine = new RustEngine(level);
 
     // Register frame callback
-    this.wasmEngine.onFrame((frame: any) => {
-      this.handleFrameUpdate(frame, level);
+    this.wasmEngine.onFrame((frame: Frame) => {
+      this.handleFrameUpdate(frame);
     });
 
     // Emit initial events
     this.emitInitialEvents(level);
   }
 
-  private emitInitialEvents(level: Level): void {
+  private emitInitialEvents(level: LevelDefinition): void {
     // Emit levelChanged event
     this.emitEvent({
       type: 'levelChanged',
@@ -86,55 +71,80 @@ export class WasmGameEngine {
 
     // Get initial frame and emit events
     if (this.wasmEngine) {
-      const frame = this.wasmEngine.getFrame();
-      this.handleFrameUpdate(frame, level);
+      const frame = this.wasmEngine.getFrame() as Frame;
+      this.handleFrameUpdate(frame);
     }
   }
 
-  private handleFrameUpdate(frame: any, level: Level): void {
-    // Map Rust status to TS status
-    const statusMap: Record<string, any> = {
-      'Playing': 'PLAYING',
-      'GameOver': 'GAME_OVER',
-      'LevelComplete': 'LEVEL_COMPLETE',
-      'AllComplete': 'ALL_COMPLETE'
-    };
-    
-    // Convert Rust frame back to TypeScript format
-    const gameState = {
-      status: statusMap[frame.state.status] || frame.state.status,
-      // Rust engine hardcodes level to 1, so we override it with our local tracker
-      currentLevel: this.currentLevelIndex + 1,
-      moves: frame.state.moves,
-      foodCollected: frame.state.food_collected,
-      totalFood: frame.state.total_food
-    };
-    
-    // Emit state changed event
-    this.emitEvent({
-      type: 'stateChanged',
-      state: gameState
-    });
-
-    // Calculate snake from frame data (now included in Frame struct)
-    const snake = {
-        segments: frame.snake.segments,
-        direction: frame.snake.direction
-    };
+  private handleFrameUpdate(frame: Frame): void {
+    const normalizedFrame = this.normalizeFrame(frame);
 
     this.emitEvent({
-        type: 'snakeChanged',
-        snake: snake
-    });
-
-    this.emitEvent({
-      type: 'gridDirty'
+      type: 'frameChanged',
+      frame: normalizedFrame
     });
 
     // Handle level completion
-    if (gameState.status === 'LEVEL_COMPLETE') {
+    if (normalizedFrame.state.status === 'LevelComplete') {
       this.handleLevelComplete();
     }
+  }
+
+  private normalizeFrame(frame: Frame): Frame {
+    const normalizeCell = (cell: unknown): string => {
+      if (typeof cell === 'string') return cell;
+      if (typeof cell === 'number') {
+        const map = ['Empty', 'SnakeHead', 'SnakeBody', 'Food', 'Obstacle', 'Exit'];
+        return map[cell] ?? 'Empty';
+      }
+      if (cell && typeof cell === 'object') {
+        const key = Object.keys(cell as Record<string, unknown>)[0];
+        if (key) return key;
+      }
+      return 'Empty';
+    };
+
+    const normalizeDirection = (direction: unknown): string | null => {
+      if (direction === null || direction === undefined) return null;
+      if (typeof direction === 'string') return direction;
+      if (typeof direction === 'number') {
+        const map = ['North', 'South', 'East', 'West'];
+        return map[direction] ?? null;
+      }
+      if (direction && typeof direction === 'object') {
+        const key = Object.keys(direction as Record<string, unknown>)[0];
+        if (key) return key;
+      }
+      return null;
+    };
+
+    const normalizeStatus = (status: unknown): string => {
+      if (typeof status === 'string') return status;
+      if (typeof status === 'number') {
+        const map = ['Playing', 'GameOver', 'LevelComplete', 'AllComplete'];
+        return map[status] ?? 'Playing';
+      }
+      if (status && typeof status === 'object') {
+        const key = Object.keys(status as Record<string, unknown>)[0];
+        if (key) return key;
+      }
+      return 'Playing';
+    };
+
+    return {
+      ...frame,
+      grid: frame.grid.map(row =>
+        row.map(cell => normalizeCell(cell) as Frame['grid'][number][number])
+      ),
+      state: {
+        ...frame.state,
+        status: normalizeStatus(frame.state.status) as Frame['state']['status']
+      },
+      snake: {
+        ...frame.snake,
+        direction: normalizeDirection(frame.snake.direction) as Frame['snake']['direction']
+      }
+    };
   }
 
   private async handleLevelComplete(): Promise<void> {
@@ -147,32 +157,14 @@ export class WasmGameEngine {
     }
   }
 
-  processMove(direction: string): void {
+  processMove(direction: Direction): void {
     if (!this.wasmEngine) {
       console.error('WASM engine not initialized');
       return;
     }
 
-    // Convert direction to Rust format
-    const directionMap: Record<string, string> = {
-      'NORTH': 'North',
-      'SOUTH': 'South',
-      'EAST': 'East',
-      'WEST': 'West',
-      'North': 'North',
-      'South': 'South',
-      'East': 'East',
-      'West': 'West'
-    };
-
-    const rustDirection = directionMap[direction];
-    if (!rustDirection) {
-      console.error(`Invalid direction: ${direction}`);
-      return;
-    }
-
     try {
-      this.wasmEngine.processMove(rustDirection);
+      this.wasmEngine.processMove(direction);
     } catch (error) {
       console.error('Error processing move:', error);
     }

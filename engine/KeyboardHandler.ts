@@ -1,27 +1,27 @@
 import { WasmGameEngine } from './WasmGameEngine';
-import { Direction, GameStatus } from '../types';
+import type { Direction, GameStatus } from '../types/models';
 import { gameState } from '../stores/stores';
 
 export class KeyboardHandler {
   private keyMap: Map<string, Direction>;
   private boundHandler: (event: KeyboardEvent) => void;
-  private currentStatus: GameStatus = GameStatus.Playing;
+  private currentStatus: GameStatus = 'Playing';
   private unsubscribe: () => void;
 
   constructor(private gameEngine: WasmGameEngine) {
     this.keyMap = new Map([
-      ['ArrowUp', Direction.North],
-      ['ArrowDown', Direction.South],
-      ['ArrowLeft', Direction.West],
-      ['ArrowRight', Direction.East],
-      ['w', Direction.North],
-      ['s', Direction.South],
-      ['a', Direction.West],
-      ['d', Direction.East],
-      ['W', Direction.North],
-      ['S', Direction.South],
-      ['A', Direction.West],
-      ['D', Direction.East],
+      ['ArrowUp', 'North'],
+      ['ArrowDown', 'South'],
+      ['ArrowLeft', 'West'],
+      ['ArrowRight', 'East'],
+      ['w', 'North'],
+      ['s', 'South'],
+      ['a', 'West'],
+      ['d', 'East'],
+      ['W', 'North'],
+      ['S', 'South'],
+      ['A', 'West'],
+      ['D', 'East'],
     ]);
     this.boundHandler = this.handleKeyPress.bind(this);
     
@@ -50,13 +50,13 @@ export class KeyboardHandler {
     }
 
     switch (this.currentStatus) {
-      case GameStatus.Playing:
+      case 'Playing':
         this.handlePlayingState(event, lowerKey);
         break;
-      case GameStatus.GameOver:
+      case 'GameOver':
         this.handleGameOverState(event, lowerKey);
         break;
-      case GameStatus.AllComplete:
+      case 'AllComplete':
         this.handleAllCompleteState(event, lowerKey);
         break;
     }
