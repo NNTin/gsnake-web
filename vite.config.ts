@@ -14,6 +14,11 @@ export default defineConfig({
     svelte()
   ],
   base: process.env.VITE_BASE_PATH || '/',
+  server: {
+    fs: {
+      allow: ['.', '../gsnake-core/engine/bindings/wasm/pkg']
+    }
+  },
   optimizeDeps: {
     exclude: ['gsnake-wasm']
   }

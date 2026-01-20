@@ -11,6 +11,10 @@
       case 'SnakeHead': return 'snake-head';
       case 'SnakeBody': return 'snake-body';
       case 'Food': return 'food';
+      case 'FloatingFood': return 'floating-food';
+      case 'FallingFood': return 'falling-food';
+      case 'Stone': return 'stone';
+      case 'Spike': return 'spike';
       case 'Obstacle': return 'obstacle';
       case 'Exit': return 'exit';
       default: return '';
@@ -34,6 +38,18 @@
   }
   .cell.food {
     background: #FF5722;
+  }
+  .cell.floating-food {
+    background: #FF9800; /* Orange */
+  }
+  .cell.falling-food {
+    background: #FFEB3B; /* Yellow */
+  }
+  .cell.stone {
+    background: #795548; /* Brown */
+  }
+  .cell.spike {
+    background: #F44336; /* Red */
   }
   .cell.obstacle {
     background: #424242;

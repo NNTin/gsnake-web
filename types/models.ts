@@ -3,10 +3,11 @@
 export interface Position { x: number, y: number, }
 export interface GridSize { width: number, height: number, }
 export type Direction = "North" | "South" | "East" | "West";
-export type CellType = "Empty" | "SnakeHead" | "SnakeBody" | "Food" | "Obstacle" | "Exit";
+export type CellType = "Empty" | "SnakeHead" | "SnakeBody" | "Food" | "Obstacle" | "Exit" | "FloatingFood" | "FallingFood" | "Stone" | "Spike";
 export type GameStatus = "Playing" | "GameOver" | "LevelComplete" | "AllComplete";
-export interface LevelDefinition { id: number, name: string, gridSize: GridSize, snake: Array<Position>, obstacles: Array<Position>, food: Array<Position>, exit: Position, snakeDirection: Direction, }
+export interface LevelDefinition { id: number, name: string, gridSize: GridSize, snake: Array<Position>, obstacles: Array<Position>, food: Array<Position>, exit: Position, snakeDirection: Direction, floatingFood: Array<Position>, fallingFood: Array<Position>, stones: Array<Position>, spikes: Array<Position>, exitIsSolid: boolean, totalFood: number, }
 export interface GameState { status: GameStatus, currentLevel: number, moves: number, foodCollected: number, totalFood: number, }
 export interface Frame { grid: Array<Array<CellType>>, state: GameState, }
 export type ContractErrorKind = "invalidInput" | "inputRejected" | "serializationFailed" | "initializationFailed" | "internalError";
-export interface ContractError { kind: ContractErrorKind, message: string, context?: Record<string, string>, }
+export interface RejectionReason { reason: string, position?: Position, }
+export interface ContractError { kind: ContractErrorKind, message: string, context?: Record<string, string>, rejectionReason?: RejectionReason, }

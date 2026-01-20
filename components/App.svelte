@@ -30,7 +30,3 @@
 </script>
 
 <GameContainer />
-
-<style>
-  /* Global styles are in app.css, component specific styles here if needed */
-</style>
