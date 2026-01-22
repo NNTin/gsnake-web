@@ -5,7 +5,7 @@ export interface GridSize { width: number, height: number, }
 export type Direction = "North" | "South" | "East" | "West";
 export type CellType = "Empty" | "SnakeHead" | "SnakeBody" | "Food" | "Obstacle" | "Exit" | "FloatingFood" | "FallingFood" | "Stone" | "Spike";
 export type GameStatus = "Playing" | "GameOver" | "LevelComplete" | "AllComplete";
-export interface LevelDefinition { id: number, name: string, difficulty?: string, gridSize: GridSize, snake: Array<Position>, obstacles: Array<Position>, food: Array<Position>, exit: Position, snakeDirection: Direction, floatingFood: Array<Position>, fallingFood: Array<Position>, stones: Array<Position>, spikes: Array<Position>, exitIsSolid: boolean, totalFood: number, }
+export interface LevelDefinition { id: number, name: string, difficulty?: string, gridSize: GridSize, snake: Array<Position>, obstacles: Array<Position>, food: Array<Position>, exit: Position, snakeDirection: Direction, floatingFood: Array<Position>, fallingFood: Array<Position>, stones: Array<Position>, spikes: Array<Position>, exitIsSolid?: boolean, totalFood: number, }
 export interface GameState { status: GameStatus, currentLevel: number, moves: number, foodCollected: number, totalFood: number, }
 export interface Frame { grid: Array<Array<CellType>>, state: GameState, }
 export type ContractErrorKind = "invalidInput" | "inputRejected" | "serializationFailed" | "initializationFailed" | "internalError";
