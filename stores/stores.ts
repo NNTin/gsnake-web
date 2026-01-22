@@ -16,6 +16,10 @@ export const snakeLength = writable<number>(0);
 export const level = writable<LevelDefinition | null>(null);
 export const frame = writable<Frame | null>(null);
 export const engineError = writable<ContractError | null>(null);
+export const availableLevels = writable<LevelDefinition[]>([]);
+export const completedLevels = writable<number[]>([]);
+export const levelSelectorOpen = writable<boolean>(false);
+export const levelLoadError = writable<string | null>(null);
 
 function shouldExposeContractDebug(): boolean {
   if (typeof window === 'undefined') return false;

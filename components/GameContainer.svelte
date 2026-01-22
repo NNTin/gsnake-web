@@ -2,12 +2,16 @@
   import Header from './Header.svelte';
   import GameGrid from './GameGrid.svelte';
   import Overlay from './Overlay.svelte';
+  import LevelSelectorOverlay from './LevelSelectorOverlay.svelte';
+  import LevelCompleteBanner from './LevelCompleteBanner.svelte';
 </script>
 
 <div class="game-container">
   <Header />
+  <LevelCompleteBanner />
   <GameGrid />
   <Overlay />
+  <LevelSelectorOverlay />
 </div>
 
 <style>

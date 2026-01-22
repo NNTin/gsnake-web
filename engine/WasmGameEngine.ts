@@ -100,19 +100,8 @@ export class WasmGameEngine {
       frame: frame
     });
 
-    // Handle level completion
     if (frame.state.status === 'LevelComplete') {
-      this.handleLevelComplete();
-    }
-  }
-
-  private async handleLevelComplete(): Promise<void> {
-    // Check if there are more levels
-    if (this.currentLevelIndex < this.levels.length - 1) {
-      // Auto-advance to next level after a short delay
-      setTimeout(async () => {
-        await this.nextLevel();
-      }, 1000);
+      // Stay on completed level; UI handles completion messaging.
     }
   }
 
@@ -144,6 +133,10 @@ export class WasmGameEngine {
 
   addEventListener(listener: GameEventListener): void {
     this.listeners.push(listener);
+  }
+
+  getLevels(): LevelDefinition[] {
+    return this.levels;
   }
 
   private emitEvent(event: GameEvent): void {
