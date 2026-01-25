@@ -83,6 +83,8 @@
     }
   }
 
+  const directionValues = new Set(['North', 'South', 'East', 'West']);
+
   function isLevelArray(data: unknown): data is LevelDefinition[] {
     if (!Array.isArray(data)) return false;
     return data.every((level) => isLevelDefinition(level));
@@ -91,15 +93,51 @@
   function isLevelDefinition(level: unknown): level is LevelDefinition {
     if (!level || typeof level !== 'object') return false;
     const candidate = level as Record<string, unknown>;
-    return (
-      typeof candidate.id === 'number' &&
-      typeof candidate.name === 'string' &&
-      typeof candidate.gridSize === 'object' &&
-      typeof candidate.snakeDirection === 'string' &&
-      Array.isArray(candidate.snake) &&
-      Array.isArray(candidate.obstacles) &&
-      Array.isArray(candidate.food)
-    );
+
+    if (!isFiniteNumber(candidate.id)) return false;
+    if (typeof candidate.name !== 'string') return false;
+    if (candidate.difficulty !== undefined && typeof candidate.difficulty !== 'string') return false;
+    if (!isGridSize(candidate.gridSize)) return false;
+    if (!isPositionArray(candidate.snake)) return false;
+    if (!isPositionArray(candidate.obstacles)) return false;
+    if (!isPositionArray(candidate.food)) return false;
+    if (!isPosition(candidate.exit)) return false;
+    if (typeof candidate.snakeDirection !== 'string' || !directionValues.has(candidate.snakeDirection)) {
+      return false;
+    }
+    if (!isOptionalPositionArray(candidate.floatingFood)) return false;
+    if (!isOptionalPositionArray(candidate.fallingFood)) return false;
+    if (!isOptionalPositionArray(candidate.stones)) return false;
+    if (!isOptionalPositionArray(candidate.spikes)) return false;
+    if (candidate.exitIsSolid !== undefined && typeof candidate.exitIsSolid !== 'boolean') return false;
+    if (!isFiniteNumber(candidate.totalFood)) return false;
+
+    return true;
+  }
+
+  function isOptionalPositionArray(value: unknown): boolean {
+    if (value === undefined) return true;
+    return isPositionArray(value);
+  }
+
+  function isPositionArray(value: unknown): boolean {
+    return Array.isArray(value) && value.every((item) => isPosition(item));
+  }
+
+  function isPosition(value: unknown): boolean {
+    if (!value || typeof value !== 'object') return false;
+    const candidate = value as Record<string, unknown>;
+    return isFiniteNumber(candidate.x) && isFiniteNumber(candidate.y);
+  }
+
+  function isGridSize(value: unknown): boolean {
+    if (!value || typeof value !== 'object') return false;
+    const candidate = value as Record<string, unknown>;
+    return isFiniteNumber(candidate.width) && isFiniteNumber(candidate.height);
+  }
+
+  function isFiniteNumber(value: unknown): value is number {
+    return typeof value === 'number' && Number.isFinite(value);
   }
 </script>
 
