@@ -18,7 +18,8 @@
     const urlParams = new URLSearchParams(window.location.search);
     const startLevel = parseInt(urlParams.get('level') || '1', 10);
     const levelsUrl = urlParams.get('levelsUrl');
-    
+    const testMode = urlParams.get('test') === 'true';
+
     // Connect stores BEFORE init so we catch the initial events
     connectGameEngineToStores(gameEngine);
     keyboardHandler = new KeyboardHandler(gameEngine);
@@ -27,7 +28,17 @@
     completedLevels.set(CompletionTracker.getCompletedLevels());
 
     let customLevels: LevelDefinition[] | null = null;
-    if (levelsUrl) {
+
+    // Test mode: load level from test server
+    if (testMode) {
+      const result = await fetchTestLevel();
+      customLevels = result.levels;
+      if (!customLevels) {
+        levelLoadError.set(
+          result.error ?? 'Failed to load test level. Make sure the test server is running on port 3001.'
+        );
+      }
+    } else if (levelsUrl) {
       const result = await fetchCustomLevels(levelsUrl);
       customLevels = result.levels;
       if (!customLevels) {
@@ -79,6 +90,34 @@
       return {
         levels: null,
         error: 'Network, CORS, or JSON error while loading levels. Using default levels instead.',
+      };
+    }
+  }
+
+  async function fetchTestLevel(): Promise<{ levels: LevelDefinition[] | null; error?: string }> {
+    try {
+      const response = await fetch('http://localhost:3001/api/test-level');
+      if (!response.ok) {
+        return {
+          levels: null,
+          error: `Failed to fetch test level (${response.status}). Make sure the test server is running (npm run server).`,
+        };
+      }
+      const data = await response.json();
+      // Validate the single level
+      if (!isLevelDefinition(data)) {
+        return {
+          levels: null,
+          error: 'Test level has an invalid schema.',
+        };
+      }
+      // Wrap the single level in an array for the game engine
+      return { levels: [data] };
+    } catch (error) {
+      console.error('Failed to fetch test level', error);
+      return {
+        levels: null,
+        error: 'Failed to connect to test server. Make sure it is running on port 3001 (npm run server).',
       };
     }
   }
