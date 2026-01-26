@@ -15,6 +15,8 @@ export default defineConfig({
   ],
   base: process.env.VITE_BASE_PATH || '/',
   server: {
+    port: 3000,
+    strictPort: true,
     fs: {
       allow: ['.', '../gsnake-core/engine/bindings/wasm/pkg']
     }
