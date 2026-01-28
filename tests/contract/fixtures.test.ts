@@ -10,10 +10,9 @@ import type {
   ContractErrorKind,
 } from '../../types/models';
 
-const FIXTURES_DIR = join(
-  __dirname,
-  '../../../gsnake-core/engine/core/tests/fixtures'
-);
+// Use local fixtures for standalone builds
+// Original location: ../../../gsnake-core/engine/core/tests/fixtures
+const FIXTURES_DIR = join(__dirname, '../fixtures');
 
 function loadFixture<T>(filename: string): T {
   const json = readFileSync(join(FIXTURES_DIR, filename), 'utf-8');

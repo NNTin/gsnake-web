@@ -1,0 +1,5 @@
+{
+  "_comment": "Copied from gsnake-core/engine/core/tests/fixtures for standalone builds",
+  "kind": "initializationFailed",
+  "message": "Failed to initialize game"
+}

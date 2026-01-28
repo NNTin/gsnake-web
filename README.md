@@ -34,6 +34,17 @@ From this directory:
 npm run build:wasm
 ```
 
+## Contract Test Fixtures
+
+The contract tests in `tests/contract/fixtures.test.ts` validate that TypeScript types match the Rust-generated JSON structure. Test fixtures are located in `tests/fixtures/` and are duplicated from `gsnake-core/engine/core/tests/fixtures` to enable standalone builds.
+
+**Fixtures included:**
+- `frame.json` - Sample game frame with grid and state
+- `level.json` - Sample level definition
+- `error-*.json` - Contract error examples for all error kinds
+
+These fixtures ensure type safety between the Rust WASM backend and TypeScript frontend. If the Rust contract changes, these fixtures should be updated to match.
+
 ## Common commands
 
 ```bash
