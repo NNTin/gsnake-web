@@ -25,6 +25,7 @@ const wasmPkgPath = join(projectRoot, '..', 'gsnake-core', 'engine', 'bindings',
 
 const isRootRepo = existsSync(rootGitPath) && existsSync(gsnakeCoreCargoPath);
 const localPathDependency = 'file:../gsnake-core/engine/bindings/wasm/pkg';
+const gitDependency = 'git+https://github.com/nntin/gsnake.git#main:gsnake-core/engine/bindings/wasm/pkg';
 
 console.log('[detect-local-deps] Checking dependency context...');
 console.log(`[detect-local-deps] Root .git exists: ${existsSync(rootGitPath)}`);
@@ -54,28 +55,20 @@ if (isRootRepo) {
     console.log('[detect-local-deps] ✓ package.json already configured for local development');
   }
 } else {
-  console.log('[detect-local-deps] ⚠️  Standalone mode detected');
-  console.log('[detect-local-deps] Note: npm does not support git dependencies for subdirectories');
-  console.log('[detect-local-deps] For standalone builds:');
-  console.log('[detect-local-deps]   1. Clone gsnake repo');
-  console.log('[detect-local-deps]   2. Use local file: path dependency (current configuration)');
-  console.log('[detect-local-deps]   3. Or publish gsnake-wasm to npm registry');
+  console.log('[detect-local-deps] ⚠️  Standalone mode detected - using git dependency');
+  console.log('[detect-local-deps] Git dependency will fetch prebuilt WASM from main branch');
 
-  // In standalone mode, we keep the current dependency as-is
-  // The user needs to have the WASM package available locally
+  // In standalone mode, use git dependency to fetch prebuilt WASM
   const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf8'));
   const currentDep = packageJson.dependencies['gsnake-wasm'];
-  console.log(`[detect-local-deps] Current dependency: ${currentDep}`);
 
-  if (currentDep.startsWith('file:')) {
-    const depPath = join(projectRoot, currentDep.replace('file:', ''));
-    if (!existsSync(join(depPath, 'package.json'))) {
-      console.error('[detect-local-deps] ❌ ERROR: WASM package not found at', depPath);
-      console.error('[detect-local-deps] Standalone builds require local WASM artifacts');
-      process.exit(1);
-    } else {
-      console.log('[detect-local-deps] ✓ WASM package found');
-    }
+  if (currentDep !== gitDependency) {
+    console.log(`[detect-local-deps] Updating package.json: ${currentDep} → ${gitDependency}`);
+    packageJson.dependencies['gsnake-wasm'] = gitDependency;
+    writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2) + '\n');
+    console.log('[detect-local-deps] ✓ package.json updated for standalone mode');
+  } else {
+    console.log('[detect-local-deps] ✓ package.json already configured for standalone mode');
   }
 }
 
