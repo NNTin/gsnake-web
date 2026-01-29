@@ -18,16 +18,19 @@ const __dirname = dirname(__filename);
 const projectRoot = join(__dirname, '..');
 const packageJsonPath = join(projectRoot, 'package.json');
 
+const forceGitDeps = process.env.FORCE_GIT_DEPS === '1' || process.env.FORCE_GIT_DEPS === 'true';
+
 // Check for root repository context
 const rootGitPath = join(projectRoot, '..', '.git');
 const gsnakeCoreCargoPath = join(projectRoot, '..', 'gsnake-core', 'Cargo.toml');
 const wasmPkgPath = join(projectRoot, '..', 'gsnake-core', 'engine', 'bindings', 'wasm', 'pkg', 'package.json');
 
-const isRootRepo = existsSync(rootGitPath) && existsSync(gsnakeCoreCargoPath);
+const isRootRepo = !forceGitDeps && existsSync(rootGitPath) && existsSync(gsnakeCoreCargoPath);
 const localPathDependency = 'file:../gsnake-core/engine/bindings/wasm/pkg';
 const gitDependency = 'git+https://github.com/nntin/gsnake.git#main:gsnake-core/engine/bindings/wasm/pkg';
 
 console.log('[detect-local-deps] Checking dependency context...');
+console.log(`[detect-local-deps] FORCE_GIT_DEPS: ${forceGitDeps}`);
 console.log(`[detect-local-deps] Root .git exists: ${existsSync(rootGitPath)}`);
 console.log(`[detect-local-deps] gsnake-core exists: ${existsSync(gsnakeCoreCargoPath)}`);
 console.log(`[detect-local-deps] WASM pkg exists: ${existsSync(wasmPkgPath)}`);

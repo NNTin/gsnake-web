@@ -11,71 +11,143 @@ jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
+    env:
+      FORCE_GIT_DEPS: '1'
     steps:
       - name: Checkout submodule
         uses: actions/checkout@v4
         with:
           path: gsnake-web
 
+      - name: Resolve gsnake-web directory
+        run: |
+          for candidate in "." "gsnake-web" "gsnake-web/gsnake-web"; do
+            if [ -f "${candidate}/package.json" ] && [ -f "${candidate}/scripts/detect-local-deps.js" ]; then
+              echo "WEB_DIR=${candidate}" >> "$GITHUB_ENV"
+              exit 0
+            fi
+          done
+          echo "Unable to locate gsnake-web package.json" >&2
+          ls -la
+          find . -maxdepth 3 -type f -name package.json -o -name detect-local-deps.js
+          exit 1
+
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
-          cache-dependency-path: gsnake-web/package-lock.json
+          cache-dependency-path: ${{ env.WEB_DIR }}/package-lock.json
+
+      - name: Configure dependencies for standalone mode
+        run: node scripts/detect-local-deps.js
+        working-directory: ${{ env.WEB_DIR }}
+
+      - name: Configure git to use HTTPS
+        run: |
+          git config --global url."https://github.com/".insteadOf "ssh://git@github.com/"
+          git config --global url."https://github.com/".insteadOf "git@github.com:"
 
       - name: Install dependencies
-        run: npm ci
-        working-directory: gsnake-web
+        run: npm install
+        working-directory: ${{ env.WEB_DIR }}
 
       - name: Build
         run: npm run build
-        working-directory: gsnake-web
+        working-directory: ${{ env.WEB_DIR }}
 
   typecheck:
     name: Typecheck
     runs-on: ubuntu-latest
+    env:
+      FORCE_GIT_DEPS: '1'
     steps:
       - name: Checkout submodule
         uses: actions/checkout@v4
         with:
           path: gsnake-web
 
+      - name: Resolve gsnake-web directory
+        run: |
+          for candidate in "." "gsnake-web" "gsnake-web/gsnake-web"; do
+            if [ -f "${candidate}/package.json" ] && [ -f "${candidate}/scripts/detect-local-deps.js" ]; then
+              echo "WEB_DIR=${candidate}" >> "$GITHUB_ENV"
+              exit 0
+            fi
+          done
+          echo "Unable to locate gsnake-web package.json" >&2
+          ls -la
+          find . -maxdepth 3 -type f -name package.json -o -name detect-local-deps.js
+          exit 1
+
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
-          cache-dependency-path: gsnake-web/package-lock.json
+          cache-dependency-path: ${{ env.WEB_DIR }}/package-lock.json
+
+      - name: Configure dependencies for standalone mode
+        run: node scripts/detect-local-deps.js
+        working-directory: ${{ env.WEB_DIR }}
+
+      - name: Configure git to use HTTPS
+        run: |
+          git config --global url."https://github.com/".insteadOf "ssh://git@github.com/"
+          git config --global url."https://github.com/".insteadOf "git@github.com:"
 
       - name: Install dependencies
-        run: npm ci
-        working-directory: gsnake-web
+        run: npm install
+        working-directory: ${{ env.WEB_DIR }}
 
       - name: Typecheck
         run: npm run check
-        working-directory: gsnake-web
+        working-directory: ${{ env.WEB_DIR }}
 
   test:
     name: Test
     runs-on: ubuntu-latest
+    env:
+      FORCE_GIT_DEPS: '1'
     steps:
       - name: Checkout submodule
         uses: actions/checkout@v4
         with:
           path: gsnake-web
 
+      - name: Resolve gsnake-web directory
+        run: |
+          for candidate in "." "gsnake-web" "gsnake-web/gsnake-web"; do
+            if [ -f "${candidate}/package.json" ] && [ -f "${candidate}/scripts/detect-local-deps.js" ]; then
+              echo "WEB_DIR=${candidate}" >> "$GITHUB_ENV"
+              exit 0
+            fi
+          done
+          echo "Unable to locate gsnake-web package.json" >&2
+          ls -la
+          find . -maxdepth 3 -type f -name package.json -o -name detect-local-deps.js
+          exit 1
+
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
-          cache-dependency-path: gsnake-web/package-lock.json
+          cache-dependency-path: ${{ env.WEB_DIR }}/package-lock.json
+
+      - name: Configure dependencies for standalone mode
+        run: node scripts/detect-local-deps.js
+        working-directory: ${{ env.WEB_DIR }}
+
+      - name: Configure git to use HTTPS
+        run: |
+          git config --global url."https://github.com/".insteadOf "ssh://git@github.com/"
+          git config --global url."https://github.com/".insteadOf "git@github.com:"
 
       - name: Install dependencies
-        run: npm ci
-        working-directory: gsnake-web
+        run: npm install
+        working-directory: ${{ env.WEB_DIR }}
 
       - name: Test
         run: npm test
-        working-directory: gsnake-web
+        working-directory: ${{ env.WEB_DIR }}
