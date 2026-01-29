@@ -1,0 +1,32 @@
+{
+  "_comment": "Copied from gsnake-core/engine/core/tests/fixtures for standalone builds",
+  "grid": [
+    [
+      "Obstacle",
+      "Empty",
+      "Empty"
+    ],
+    [
+      "Empty",
+      "SnakeHead",
+      "Empty"
+    ],
+    [
+      "Empty",
+      "SnakeBody",
+      "Food"
+    ],
+    [
+      "Empty",
+      "Empty",
+      "Exit"
+    ]
+  ],
+  "state": {
+    "status": "Playing",
+    "currentLevel": 1,
+    "moves": 5,
+    "foodCollected": 2,
+    "totalFood": 3
+  }
+}
