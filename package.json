@@ -6,10 +6,10 @@
   "scripts": {
     "preinstall": "node scripts/detect-local-deps.js",
     "dev": "vite",
-    "prebuild": "npm test",
+    "prebuild": "node scripts/build-wasm.js && npm test",
     "build": "vite build",
     "build:types": "python3 ../scripts/generate_ts_types.py",
-    "build:wasm": "python3 ../scripts/build_wasm.py",
+    "build:wasm": "node scripts/build-wasm.js",
     "preview": "vite preview",
     "check": "svelte-check --tsconfig ./tsconfig.json",
     "test": "vitest run",
