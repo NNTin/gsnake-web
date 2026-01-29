@@ -3,7 +3,7 @@
  * Conditional WASM build script for gsnake-web
  *
  * In root repo mode: Builds WASM from local gsnake-core
- * In standalone mode: Expects prebuilt WASM from git dependency (no build needed)
+ * In standalone mode: Expects prebuilt WASM from vendored download (no build needed)
  */
 
 import { existsSync } from 'fs';
@@ -57,6 +57,6 @@ if (isRootRepo) {
     console.log('[build-wasm] FORCE_GIT_DEPS set - skipping local WASM build');
   }
   console.log('[build-wasm] ⚠️  Standalone mode detected - skipping WASM build');
-  console.log('[build-wasm] Expecting prebuilt WASM from git dependency');
+  console.log('[build-wasm] Expecting prebuilt WASM from vendored download');
   console.log('[build-wasm] ✓ No build required');
 }

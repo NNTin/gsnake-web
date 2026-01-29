@@ -6,10 +6,10 @@
  * and ensures the correct dependency path is configured.
  *
  * Root repo mode: Uses local file: path to sibling gsnake-core
- * Standalone mode: Requires prebuilt WASM (committed in gsnake-core)
+ * Standalone mode: Downloads prebuilt WASM (committed in gsnake-core)
  */
 
-import { existsSync, readFileSync, writeFileSync } from 'fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 
@@ -27,7 +27,18 @@ const wasmPkgPath = join(projectRoot, '..', 'gsnake-core', 'engine', 'bindings',
 
 const isRootRepo = !forceGitDeps && existsSync(rootGitPath) && existsSync(gsnakeCoreCargoPath);
 const localPathDependency = 'file:../gsnake-core/engine/bindings/wasm/pkg';
-const gitDependency = 'git+https://github.com/nntin/gsnake.git#main:gsnake-core/engine/bindings/wasm/pkg';
+const vendorDependency = 'file:./vendor/gsnake-wasm';
+const vendorDir = join(projectRoot, 'vendor', 'gsnake-wasm');
+const vendorBaseUrl =
+  'https://raw.githubusercontent.com/nntin/gsnake/main/gsnake-core/engine/bindings/wasm/pkg';
+const vendorFiles = [
+  'package.json',
+  'gsnake_wasm.js',
+  'gsnake_wasm.d.ts',
+  'gsnake_wasm_bg.wasm',
+  'gsnake_wasm_bg.js',
+  'gsnake_wasm_bg.wasm.d.ts'
+];
 
 console.log('[detect-local-deps] Checking dependency context...');
 console.log(`[detect-local-deps] FORCE_GIT_DEPS: ${forceGitDeps}`);
@@ -35,7 +46,50 @@ console.log(`[detect-local-deps] Root .git exists: ${existsSync(rootGitPath)}`);
 console.log(`[detect-local-deps] gsnake-core exists: ${existsSync(gsnakeCoreCargoPath)}`);
 console.log(`[detect-local-deps] WASM pkg exists: ${existsSync(wasmPkgPath)}`);
 
-if (isRootRepo) {
+const ensureVendorWasm = async () => {
+  const missingFiles = vendorFiles.filter(file => !existsSync(join(vendorDir, file)));
+
+  if (missingFiles.length === 0) {
+    console.log('[detect-local-deps] ✓ Vendor WASM already present');
+    return;
+  }
+
+  console.log('[detect-local-deps] Downloading prebuilt WASM package for standalone mode...');
+  mkdirSync(vendorDir, { recursive: true });
+
+  for (const file of vendorFiles) {
+    const url = `${vendorBaseUrl}/${file}`;
+    const destination = join(vendorDir, file);
+    console.log(`[detect-local-deps]   - ${url}`);
+
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`[detect-local-deps] Failed to download ${url}: ${response.status}`);
+    }
+
+    const buffer = Buffer.from(await response.arrayBuffer());
+    writeFileSync(destination, buffer);
+  }
+
+  console.log('[detect-local-deps] ✓ Vendor WASM downloaded');
+};
+
+const updateDependency = (targetDependency, label) => {
+  const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf8'));
+  const currentDep = packageJson.dependencies['gsnake-wasm'];
+
+  if (currentDep !== targetDependency) {
+    console.log(`[detect-local-deps] Updating package.json: ${currentDep} → ${targetDependency}`);
+    packageJson.dependencies['gsnake-wasm'] = targetDependency;
+    writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2) + '\n');
+    console.log(`[detect-local-deps] ✓ package.json updated for ${label}`);
+  } else {
+    console.log(`[detect-local-deps] ✓ package.json already configured for ${label}`);
+  }
+};
+
+const run = async () => {
+  if (isRootRepo) {
   console.log('[detect-local-deps] ✓ Root repository detected - using local WASM');
 
   // Verify the WASM package exists
@@ -46,33 +100,22 @@ if (isRootRepo) {
   }
 
   // Ensure package.json uses local path
-  const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf8'));
-  const currentDep = packageJson.dependencies['gsnake-wasm'];
-
-  if (currentDep !== localPathDependency) {
-    console.log(`[detect-local-deps] Updating package.json: ${currentDep} → ${localPathDependency}`);
-    packageJson.dependencies['gsnake-wasm'] = localPathDependency;
-    writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2) + '\n');
-    console.log('[detect-local-deps] ✓ package.json updated');
-  } else {
-    console.log('[detect-local-deps] ✓ package.json already configured for local development');
+    updateDependency(localPathDependency, 'local development');
+    return;
   }
-} else {
-  console.log('[detect-local-deps] ⚠️  Standalone mode detected - using git dependency');
-  console.log('[detect-local-deps] Git dependency will fetch prebuilt WASM from main branch');
 
-  // In standalone mode, use git dependency to fetch prebuilt WASM
-  const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf8'));
-  const currentDep = packageJson.dependencies['gsnake-wasm'];
+  console.log('[detect-local-deps] ⚠️  Standalone mode detected - using vendored WASM');
+  console.log('[detect-local-deps] Standalone mode will fetch prebuilt WASM from main branch');
 
-  if (currentDep !== gitDependency) {
-    console.log(`[detect-local-deps] Updating package.json: ${currentDep} → ${gitDependency}`);
-    packageJson.dependencies['gsnake-wasm'] = gitDependency;
-    writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2) + '\n');
-    console.log('[detect-local-deps] ✓ package.json updated for standalone mode');
-  } else {
-    console.log('[detect-local-deps] ✓ package.json already configured for standalone mode');
-  }
-}
+  await ensureVendorWasm();
+  updateDependency(vendorDependency, 'standalone mode');
+};
 
-console.log('[detect-local-deps] Done');
+run()
+  .then(() => {
+    console.log('[detect-local-deps] Done');
+  })
+  .catch(error => {
+    console.error(String(error));
+    process.exit(1);
+  });

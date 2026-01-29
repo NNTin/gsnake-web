@@ -20,7 +20,7 @@ When building `gsnake-web` as a standalone package:
    ```bash
    npm install
    ```
-   The `preinstall` script will automatically detect standalone mode and configure the git dependency to fetch prebuilt WASM from the `main` branch.
+   The `preinstall` script will automatically detect standalone mode, download prebuilt WASM from the `main` branch, and configure a local vendor dependency.
 
 3. **Build and test:**
    ```bash
@@ -31,12 +31,12 @@ When building `gsnake-web` as a standalone package:
 
 **Requirements:**
 - Node.js 18+ and npm
-- Git (for fetching the WASM dependency)
+- Network access to GitHub (for downloading the prebuilt WASM)
 - Prebuilt WASM artifacts must be available in the `main` branch at `gsnake-core/engine/bindings/wasm/pkg`
 
 **What happens in standalone mode:**
-- The git dependency `git+https://github.com/nntin/gsnake.git#main:gsnake-core/engine/bindings/wasm/pkg` is used
-- Prebuilt WASM artifacts are fetched from the main branch
+- Prebuilt WASM artifacts are downloaded from the main branch into `vendor/gsnake-wasm`
+- The dependency is set to `file:./vendor/gsnake-wasm`
 - No local Rust compilation is required
 - The `build-wasm.js` script detects standalone mode and skips WASM rebuilding
 
@@ -57,7 +57,8 @@ The detection script (`scripts/detect-local-deps.js`) runs automatically before 
 - Requires building WASM locally: `cd ../gsnake-core/engine/bindings/wasm && wasm-pack build`
 
 **Standalone Mode:**
-- Automatically uses git dependency to fetch prebuilt WASM from `main` branch
+- Automatically downloads prebuilt WASM from `main` branch into `vendor/gsnake-wasm`
+- Uses `file:./vendor/gsnake-wasm` as the dependency
 - No local Rust toolchain required
 - No WASM build scripts are executed
 - Faster setup for frontend-only development
@@ -134,7 +135,7 @@ act -n  # dry run mode
 ### Standalone Build Issues
 
 **Problem: `npm install` fails with "Cannot find module 'gsnake-wasm'"`**
-- **Cause:** Git dependency may not have prebuilt WASM artifacts on the main branch
+- **Cause:** Prebuilt WASM artifacts could not be downloaded or are missing on the main branch
 - **Solution:** Verify that `gsnake-core/engine/bindings/wasm/pkg` exists in the main branch on GitHub
 - **Workaround:** Clone the full repository and build in root repo mode instead
 
