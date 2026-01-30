@@ -1,0 +1,57 @@
+name: Test (Root Repo)
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: Test with Root Repo
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout gsnake-web
+        uses: actions/checkout@v4
+        with:
+          path: gsnake-web
+
+      - name: Checkout NNTin/gSnake
+        uses: actions/checkout@v4
+        with:
+          repository: NNTin/gSnake
+          path: gsnake-root
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: gsnake-web/package-lock.json
+
+      - name: Setup Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+
+      - name: Install wasm-pack
+        run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+
+      - name: Create symlink gsnake-core
+        run: ln -s ../gsnake-root/gsnake-core gsnake-core
+        working-directory: gsnake-web
+
+      - name: Create symlink scripts
+        run: ln -s ../gsnake-root/scripts scripts
+        working-directory: gsnake-web
+
+      - name: Build WASM
+        run: python3 ../scripts/build_wasm.py
+        working-directory: gsnake-web
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: gsnake-web
+
+      - name: Run tests
+        run: npm test
+        working-directory: gsnake-web
