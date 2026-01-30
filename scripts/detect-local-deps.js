@@ -74,6 +74,10 @@ const ensureVendorWasm = async () => {
   console.log('[detect-local-deps] ✓ Vendor WASM downloaded');
 };
 
+/**
+ * @param {string} targetDependency
+ * @param {string} label
+ */
 const updateDependency = (targetDependency, label) => {
   const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf8'));
   const currentDep = packageJson.dependencies['gsnake-wasm'];
