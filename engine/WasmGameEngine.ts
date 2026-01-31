@@ -1,7 +1,7 @@
 import type { ContractError, Frame, LevelDefinition } from '../types/models';
 import type { GameEvent, GameEventListener } from '../types/events';
 import type { Direction } from '../types/models';
-import { WasmGameEngine as RustEngine, getLevels, log, init_panic_hook } from 'gsnake-wasm';
+import init_wasm, { WasmGameEngine as RustEngine, getLevels, log, init_panic_hook } from 'gsnake-wasm';
 
 /**
  * TypeScript wrapper around the Rust WASM game engine
@@ -18,6 +18,14 @@ export class WasmGameEngine {
     if (this.initialized) {
       console.warn('WasmGameEngine already initialized');
       return;
+    }
+
+    // Initialize WASM module first
+    try {
+      await init_wasm();
+    } catch (error) {
+      this.handleContractError(error, 'Failed to initialize WASM module', 'initializationFailed');
+      throw error;
     }
 
     // Initialize panic hook for better error messages
