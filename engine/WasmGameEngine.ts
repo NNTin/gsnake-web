@@ -74,6 +74,10 @@ export class WasmGameEngine {
 
     // Emit initial events
     this.emitInitialEvents(level);
+
+    // Emit initial frame (the onFrame callback only fires on processMove, not on creation)
+    const initialFrame = this.wasmEngine.getFrame();
+    this.handleFrameUpdate(initialFrame);
   }
 
   private emitInitialEvents(level: LevelDefinition): void {
