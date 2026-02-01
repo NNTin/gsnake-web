@@ -37,8 +37,8 @@ jobs:
       - name: Setup Node.js 20
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'npm'
+          node-version: "20"
+          cache: "npm"
           cache-dependency-path: ${{ env.WEB_DIR }}/package-lock.json
 
       - name: Setup Rust toolchain

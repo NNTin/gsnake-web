@@ -22,6 +22,7 @@ this.handleFrameUpdate(initialFrame);
 ```
 
 **Why this matters:**
+
 - The `onFrame(callback)` only fires when `processMove()` is called
 - Without calling `getFrame()` after initialization, the UI won't render the game grid
 - The Svelte `frame` store will remain empty, causing `.cell` elements to not appear
@@ -30,6 +31,7 @@ this.handleFrameUpdate(initialFrame);
 ### Available WASM Methods
 
 The RustEngine (WasmGameEngine from WASM) exposes these methods:
+
 - `getFrame()` - Gets current frame (grid + state)
 - `getGameState()` - Gets current game state only
 - `getLevel()` - Gets current level data
@@ -45,6 +47,7 @@ The RustEngine (WasmGameEngine from WASM) exposes these methods:
 ## Testing
 
 When debugging "element not found" errors in E2E tests:
+
 - Check if page header/buttons render but grid doesn't → likely missing initial frame emission
 - Check Playwright's `error-context.md` files for page snapshots to see what elements exist
 - Verify the `frame` store is being populated in browser console

@@ -1,7 +1,12 @@
-import type { ContractError, Frame, LevelDefinition } from '../types/models';
-import type { GameEvent, GameEventListener } from '../types/events';
-import type { Direction } from '../types/models';
-import init_wasm, { WasmGameEngine as RustEngine, getLevels, log, init_panic_hook } from 'gsnake-wasm';
+import type { ContractError, Frame, LevelDefinition } from "../types/models";
+import type { GameEvent, GameEventListener } from "../types/events";
+import type { Direction } from "../types/models";
+import init_wasm, {
+  WasmGameEngine as RustEngine,
+  getLevels,
+  log,
+  init_panic_hook,
+} from "gsnake-wasm";
 
 /**
  * TypeScript wrapper around the Rust WASM game engine
@@ -14,9 +19,12 @@ export class WasmGameEngine {
   private levels: LevelDefinition[] = [];
   private currentLevelIndex = 0;
 
-  async init(levels: LevelDefinition[] | null = null, startLevel: number = 1): Promise<void> {
+  async init(
+    levels: LevelDefinition[] | null = null,
+    startLevel: number = 1,
+  ): Promise<void> {
     if (this.initialized) {
-      console.warn('WasmGameEngine already initialized');
+      console.warn("WasmGameEngine already initialized");
       return;
     }
 
@@ -24,7 +32,11 @@ export class WasmGameEngine {
     try {
       await init_wasm();
     } catch (error) {
-      this.handleContractError(error, 'Failed to initialize WASM module', 'initializationFailed');
+      this.handleContractError(
+        error,
+        "Failed to initialize WASM module",
+        "initializationFailed",
+      );
       throw error;
     }
 
@@ -32,14 +44,18 @@ export class WasmGameEngine {
     try {
       init_panic_hook();
     } catch (error) {
-      console.warn('Failed to initialize panic hook:', error);
+      console.warn("Failed to initialize panic hook:", error);
     }
-    log('gSnake WASM engine initialized');
+    log("gSnake WASM engine initialized");
 
     try {
       this.levels = levels ?? (getLevels() as unknown as LevelDefinition[]);
     } catch (error) {
-      this.handleContractError(error, 'Failed to load levels', 'initializationFailed');
+      this.handleContractError(
+        error,
+        "Failed to load levels",
+        "initializationFailed",
+      );
       throw error;
     }
     this.currentLevelIndex = startLevel - 1;
@@ -71,7 +87,11 @@ export class WasmGameEngine {
     try {
       this.wasmEngine = new RustEngine(level);
     } catch (error) {
-      this.handleContractError(error, 'Failed to initialize engine', 'initializationFailed');
+      this.handleContractError(
+        error,
+        "Failed to initialize engine",
+        "initializationFailed",
+      );
       throw error;
     }
 
@@ -88,7 +108,11 @@ export class WasmGameEngine {
       const initialFrame = this.wasmEngine.getFrame();
       this.handleFrameUpdate(initialFrame);
     } catch (error) {
-      this.handleContractError(error, 'Failed to get initial frame', 'initializationFailed');
+      this.handleContractError(
+        error,
+        "Failed to get initial frame",
+        "initializationFailed",
+      );
       throw error;
     }
   }
@@ -96,32 +120,32 @@ export class WasmGameEngine {
   private emitInitialEvents(level: LevelDefinition): void {
     // Emit levelChanged event
     this.emitEvent({
-      type: 'levelChanged',
-      level: level
+      type: "levelChanged",
+      level: level,
     });
   }
 
   private handleFrameUpdate(frame: Frame): void {
     this.emitEvent({
-      type: 'frameChanged',
-      frame: frame
+      type: "frameChanged",
+      frame: frame,
     });
 
-    if (frame.state.status === 'LevelComplete') {
+    if (frame.state.status === "LevelComplete") {
       // Stay on completed level; UI handles completion messaging.
     }
   }
 
   processMove(direction: Direction): void {
     if (!this.wasmEngine) {
-      console.error('WASM engine not initialized');
+      console.error("WASM engine not initialized");
       return;
     }
 
     try {
       this.wasmEngine.processMove(direction);
     } catch (error) {
-      this.handleContractError(error, 'Error processing move');
+      this.handleContractError(error, "Error processing move");
     }
   }
 
@@ -155,14 +179,18 @@ export class WasmGameEngine {
   private handleContractError(
     error: unknown,
     fallbackMessage: string,
-    fallbackKind: ContractError['kind'] = 'internalError'
+    fallbackKind: ContractError["kind"] = "internalError",
   ): void {
-    const contractError = this.normalizeContractError(error, fallbackMessage, fallbackKind);
+    const contractError = this.normalizeContractError(
+      error,
+      fallbackMessage,
+      fallbackKind,
+    );
     if (contractError) {
-      this.emitEvent({ type: 'engineError', error: contractError });
+      this.emitEvent({ type: "engineError", error: contractError });
       console.error(
         `[ContractError:${contractError.kind}] ${contractError.message}`,
-        contractError.context ?? {}
+        contractError.context ?? {},
       );
       return;
     }
@@ -170,22 +198,25 @@ export class WasmGameEngine {
   }
 
   private isContractError(error: unknown): error is ContractError {
-    if (!error || typeof error !== 'object') return false;
+    if (!error || typeof error !== "object") return false;
     const candidate = error as ContractError;
-    return typeof candidate.kind === 'string' && typeof candidate.message === 'string';
+    return (
+      typeof candidate.kind === "string" &&
+      typeof candidate.message === "string"
+    );
   }
 
   private normalizeContractError(
     error: unknown,
     fallbackMessage: string,
-    fallbackKind: ContractError['kind']
+    fallbackKind: ContractError["kind"],
   ): ContractError | null {
     if (this.isContractError(error)) return error;
     const detail = error instanceof Error ? error.message : String(error);
     return {
       kind: fallbackKind,
       message: fallbackMessage,
-      context: { detail }
+      context: { detail },
     };
   }
 }
