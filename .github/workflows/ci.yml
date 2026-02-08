@@ -197,7 +197,7 @@ jobs:
         working-directory: ${{ env.WEB_DIR }}
 
       - name: Run coverage
-        run: npm run test:coverage
+        run: npm run coverage
         working-directory: ${{ env.WEB_DIR }}
 
       - name: Upload coverage artifact

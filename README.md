@@ -206,9 +206,14 @@ npm run check
 # Tests
 npm test
 
+# Coverage
+npm run coverage
+
 # Build (runs tests, generates TS types, builds wasm, then Vite)
 npm run build
 
 # Preview production build
 npm run preview
 ```
+
+Coverage artifacts are written to `coverage/`.
