@@ -34,8 +34,13 @@ git config --unset core.hooksPath
 
 The pre-commit hook runs the following checks:
 
-1. **Format Check**: `npx prettier --check .`
-2. **Type Check**: `npm run check` (svelte-check)
-3. **Build**: `npm run build:hook` (vite build without tests)
+1. **Secret Scan**:
+   - Fails if `.env` is tracked by git
+   - Scans tracked files in the working tree for exact matches of `.env` values
+   - Reports only `KEY` + `file:line` without printing secret values
+   - Optional allowlist file: `.github/hooks/env-key-allowlist.txt` (one key per line)
+2. **Format Check**: `npx prettier --check .`
+3. **Type Check**: `npm run check` (svelte-check)
+4. **Build**: `npm run build:hook` (vite build without tests)
 
 **Note: Tests are NOT run in pre-commit hooks for speed.** Run tests manually with `npm test` before pushing.
