@@ -51,3 +51,10 @@ When debugging "element not found" errors in E2E tests:
 - Check if page header/buttons render but grid doesn't → likely missing initial frame emission
 - Check Playwright's `error-context.md` files for page snapshots to see what elements exist
 - Verify the `frame` store is being populated in browser console
+
+### Unit Test Mocking Pattern
+
+For `WasmGameEngine` unit tests, mock `gsnake-wasm` with a `vi.hoisted` state object plus an in-test `MockRustEngine` class.
+
+- This allows deterministic control of `init_wasm`, `getLevels`, constructor failures, and `processMove` throws.
+- To validate contract error passthrough, throw a plain `{ kind, message, context }` object from the mocked Rust engine and assert `engineError` emits the same payload.

@@ -147,6 +147,25 @@ describe("WasmGameEngine", () => {
     }
   });
 
+  it("emits initializationFailed error when loading levels fails", async () => {
+    const engine = new WasmGameEngine();
+    const events: GameEvent[] = [];
+    engine.addEventListener((event) => events.push(event));
+    wasmMock.getLevels.mockImplementationOnce(() => {
+      throw new Error("levels unavailable");
+    });
+
+    await expect(engine.init()).rejects.toThrow("levels unavailable");
+
+    const errorEvent = events.find((event) => event.type === "engineError");
+    expect(errorEvent).toBeDefined();
+    if (errorEvent && errorEvent.type === "engineError") {
+      expect(errorEvent.error.kind).toBe("initializationFailed");
+      expect(errorEvent.error.message).toBe("Failed to load levels");
+      expect(errorEvent.error.context?.detail).toContain("levels unavailable");
+    }
+  });
+
   it("emits engineError event when processMove fails", async () => {
     const engine = new WasmGameEngine();
     const events: GameEvent[] = [];
@@ -171,14 +190,52 @@ describe("WasmGameEngine", () => {
     consoleError.mockRestore();
   });
 
-  it("advances to next level and stops at final level", async () => {
+  it("preserves contract error payload when processMove throws contract error", async () => {
+    const engine = new WasmGameEngine();
+    const events: GameEvent[] = [];
+    engine.addEventListener((event) => events.push(event));
+    const consoleError = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
+    const contractError = {
+      kind: "inputRejected" as const,
+      message: "Move rejected",
+      context: {
+        detail: "blocked by obstacle",
+        direction: "North",
+      },
+    };
+
+    await engine.init([createLevel(1)]);
+    wasmMock.processMoveError = contractError as unknown as Error;
+
+    engine.processMove("North");
+
+    const errorEvent = events.find((event) => event.type === "engineError");
+    expect(errorEvent).toBeDefined();
+    if (errorEvent && errorEvent.type === "engineError") {
+      expect(errorEvent.error).toEqual(contractError);
+    }
+    expect(consoleError).toHaveBeenCalledWith(
+      "[ContractError:inputRejected] Move rejected",
+      contractError.context,
+    );
+    consoleError.mockRestore();
+  });
+
+  it("advances to next level, resets current level, and stops at final level", async () => {
     const levels = [createLevel(1), createLevel(2)];
     const engine = new WasmGameEngine();
 
     await engine.init(levels, 1);
     await engine.nextLevel();
+    await engine.resetLevel();
     await engine.nextLevel();
 
-    expect(wasmMock.constructedLevels).toEqual([levels[0], levels[1]]);
+    expect(wasmMock.constructedLevels).toEqual([
+      levels[0],
+      levels[1],
+      levels[1],
+    ]);
   });
 });
