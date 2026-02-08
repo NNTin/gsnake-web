@@ -18,6 +18,7 @@
   "exclude": [
     "node_modules",
     "dist",
+    "coverage",
     "pkg",
     "tests",
     "svelte.config.js",

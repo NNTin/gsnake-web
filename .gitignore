@@ -3,3 +3,4 @@ dist/
 dist-ssr/
 .svelte-kit/
 vendor/
+coverage/
