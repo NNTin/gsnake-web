@@ -16,9 +16,18 @@ import type {
 function isCellType(value: unknown): value is CellType {
   return (
     typeof value === "string" &&
-    ["Empty", "SnakeHead", "SnakeBody", "Food", "Obstacle", "Exit"].includes(
-      value,
-    )
+    [
+      "Empty",
+      "SnakeHead",
+      "SnakeBody",
+      "Food",
+      "Obstacle",
+      "Exit",
+      "FloatingFood",
+      "FallingFood",
+      "Stone",
+      "Spike",
+    ].includes(value)
   );
 }
 
@@ -102,6 +111,10 @@ describe("CellType runtime validation", () => {
     expect(isCellType("SnakeBody")).toBe(true);
     expect(isCellType("Obstacle")).toBe(true);
     expect(isCellType("Exit")).toBe(true);
+    expect(isCellType("FloatingFood")).toBe(true);
+    expect(isCellType("FallingFood")).toBe(true);
+    expect(isCellType("Stone")).toBe(true);
+    expect(isCellType("Spike")).toBe(true);
   });
 
   test("type guard rejects invalid values", () => {

@@ -35,8 +35,12 @@ describe("CellType enum contract", () => {
       "Food",
       "Obstacle",
       "Exit",
+      "FloatingFood",
+      "FallingFood",
+      "Stone",
+      "Spike",
     ];
-    expect(valid).toHaveLength(6);
+    expect(valid).toHaveLength(10);
   });
 
   test("type narrows correctly", () => {
@@ -48,6 +52,10 @@ describe("CellType enum contract", () => {
       "Food",
       "Obstacle",
       "Exit",
+      "FloatingFood",
+      "FallingFood",
+      "Stone",
+      "Spike",
     ]).toContain(cell);
   });
 
@@ -59,6 +67,10 @@ describe("CellType enum contract", () => {
       "Food",
       "Obstacle",
       "Exit",
+      "FloatingFood",
+      "FallingFood",
+      "Stone",
+      "Spike",
     ];
     cellTypes.forEach((cellType) => {
       expect(cellType[0]).toBe(cellType[0].toUpperCase());

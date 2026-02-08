@@ -58,7 +58,9 @@ export class WasmGameEngine {
       );
       throw error;
     }
-    this.currentLevelIndex = startLevel - 1;
+    const normalizedStartLevel =
+      Number.isInteger(startLevel) && startLevel > 0 ? startLevel : 1;
+    this.currentLevelIndex = normalizedStartLevel - 1;
 
     // Load the first level
     await this.loadLevelByIndex(this.currentLevelIndex);

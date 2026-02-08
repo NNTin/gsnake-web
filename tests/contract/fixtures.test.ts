@@ -38,6 +38,10 @@ describe("Rust fixture compatibility", () => {
         "Food",
         "Obstacle",
         "Exit",
+        "FloatingFood",
+        "FallingFood",
+        "Stone",
+        "Spike",
       ];
 
       frame.grid.forEach((row, rowIdx) => {

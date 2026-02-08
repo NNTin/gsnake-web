@@ -16,7 +16,8 @@
   onMount(async () => {
     // Parse URL param for start level
     const urlParams = new URLSearchParams(window.location.search);
-    const startLevel = parseInt(urlParams.get('level') || '1', 10);
+    const parsedStartLevel = Number.parseInt(urlParams.get('level') ?? '1', 10);
+    const startLevel = Number.isInteger(parsedStartLevel) && parsedStartLevel > 0 ? parsedStartLevel : 1;
     const levelsUrl = urlParams.get('levelsUrl');
     const testMode = urlParams.get('test') === 'true';
 
