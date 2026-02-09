@@ -217,3 +217,4 @@ npm run preview
 ```
 
 Coverage artifacts are written to `coverage/`.
+Coverage runs fail when total line or statement coverage drops below 80%.

@@ -21,8 +21,8 @@ export default defineConfig({
       ],
       exclude: ["**/*.d.ts", "tests/**", "**/*.test.ts", "metadata.json"],
       thresholds: {
-        lines: 12,
-        statements: 12,
+        lines: 80,
+        statements: 80,
         functions: 30,
         branches: 45,
       },
