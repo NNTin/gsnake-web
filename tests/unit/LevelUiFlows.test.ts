@@ -3,9 +3,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { get } from "svelte/store";
 import { tick } from "svelte";
+import GameContainer from "../../components/GameContainer.svelte";
 import LevelSelectorButton from "../../components/LevelSelectorButton.svelte";
 import LevelSelectorOverlay from "../../components/LevelSelectorOverlay.svelte";
 import Overlay from "../../components/Overlay.svelte";
+import { KeyboardHandler } from "../../engine/KeyboardHandler";
 import {
   availableLevels,
   completedLevels,
@@ -68,6 +70,34 @@ function findButtonByLabel(label: string): HTMLButtonElement | null {
   );
 }
 
+type GameEngineStub = {
+  loadLevel: ReturnType<typeof vi.fn>;
+  processMove: ReturnType<typeof vi.fn>;
+  restartLevel: ReturnType<typeof vi.fn>;
+};
+
+function createGameEngineStub(): GameEngineStub {
+  return {
+    loadLevel: vi.fn(async () => {}),
+    processMove: vi.fn(),
+    restartLevel: vi.fn(),
+  };
+}
+
+function createGameEngineContext(engine: GameEngineStub): Map<string, unknown> {
+  return new Map([["GAME_ENGINE", engine]]);
+}
+
+function dispatchWindowKey(key: string): KeyboardEvent {
+  const event = new KeyboardEvent("keydown", {
+    key,
+    bubbles: true,
+    cancelable: true,
+  });
+  window.dispatchEvent(event);
+  return event;
+}
+
 async function flushAsyncUpdates(rounds = 4): Promise<void> {
   for (let i = 0; i < rounds; i += 1) {
     await Promise.resolve();
@@ -75,7 +105,7 @@ async function flushAsyncUpdates(rounds = 4): Promise<void> {
   }
 }
 
-describe("Level selector and load-error UI flows", () => {
+describe("Level UI flows", () => {
   beforeEach(() => {
     document.body.innerHTML = "";
     resetStores();
@@ -89,10 +119,8 @@ describe("Level selector and load-error UI flows", () => {
     availableLevels.set([createLevel(1, "easy"), createLevel(2, "medium")]);
     completedLevels.set([1]);
 
-    const gameEngine = {
-      loadLevel: vi.fn(async () => {}),
-    };
-    const context = new Map([["GAME_ENGINE", gameEngine]]);
+    const gameEngine = createGameEngineStub();
+    const context = createGameEngineContext(gameEngine);
 
     const target = document.body;
     const selectorButton = new LevelSelectorButton({ target });
@@ -147,10 +175,8 @@ describe("Level selector and load-error UI flows", () => {
     });
     levelSelectorOpen.set(true);
 
-    const gameEngine = {
-      loadLevel: vi.fn(async () => {}),
-    };
-    const context = new Map([["GAME_ENGINE", gameEngine]]);
+    const gameEngine = createGameEngineStub();
+    const context = createGameEngineContext(gameEngine);
 
     const target = document.body;
     const selectorOverlay = new LevelSelectorOverlay({ target, context });
@@ -197,5 +223,154 @@ describe("Level selector and load-error UI flows", () => {
     expect(document.querySelector('[data-element-id="overlay"]')).toBeNull();
 
     overlay.$destroy();
+  });
+
+  it("shows level-complete banner and hides modal CTAs", async () => {
+    const gameEngine = createGameEngineStub();
+    const context = createGameEngineContext(gameEngine);
+    gameState.set({
+      status: "LevelComplete",
+      currentLevel: 2,
+      moves: 11,
+      foodCollected: 1,
+      totalFood: 1,
+    });
+    level.set(createLevel(2, "hard"));
+
+    const target = document.body;
+    const gameContainer = new GameContainer({ target, context });
+    await tick();
+
+    expect(
+      target.querySelector('[data-element-id="level-complete-banner"]'),
+    ).not.toBeNull();
+    expect(target.textContent).toContain("Level Complete!");
+    expect(target.textContent).toContain("Level 2");
+    expect(target.querySelector('[data-element-id="overlay"]')).toBeNull();
+    expect(
+      target.querySelector('[data-element-id="restart-level-btn"]'),
+    ).toBeNull();
+    expect(
+      target.querySelector('[data-element-id="back-to-level1-btn"]'),
+    ).toBeNull();
+
+    gameContainer.$destroy();
+  });
+
+  it("shows game-over CTAs and wires modal actions to the engine", async () => {
+    const gameEngine = createGameEngineStub();
+    const context = createGameEngineContext(gameEngine);
+    gameState.set({
+      status: "GameOver",
+      currentLevel: 3,
+      moves: 7,
+      foodCollected: 1,
+      totalFood: 2,
+    });
+
+    const target = document.body;
+    const gameContainer = new GameContainer({ target, context });
+    await tick();
+
+    const restartLevelButton = target.querySelector(
+      '[data-element-id="restart-level-btn"]',
+    ) as HTMLButtonElement | null;
+    const backToLevelOneButton = target.querySelector(
+      '[data-element-id="back-to-level1-btn"]',
+    ) as HTMLButtonElement | null;
+
+    expect(target.querySelector('[data-element-id="overlay"]')).not.toBeNull();
+    expect(target.textContent).toContain("Game Over");
+    expect(restartLevelButton).not.toBeNull();
+    expect(backToLevelOneButton).not.toBeNull();
+
+    restartLevelButton?.click();
+    backToLevelOneButton?.click();
+
+    expect(gameEngine.restartLevel).toHaveBeenCalledTimes(1);
+    expect(gameEngine.loadLevel).toHaveBeenCalledWith(1);
+
+    gameContainer.$destroy();
+  });
+
+  it("shows all-complete UI without game-over CTAs", async () => {
+    const gameEngine = createGameEngineStub();
+    const context = createGameEngineContext(gameEngine);
+    gameState.set({
+      status: "AllComplete",
+      currentLevel: 4,
+      moves: 12,
+      foodCollected: 3,
+      totalFood: 3,
+    });
+
+    const target = document.body;
+    const gameContainer = new GameContainer({ target, context });
+    await tick();
+
+    expect(target.querySelector('[data-element-id="overlay"]')).not.toBeNull();
+    expect(target.textContent).toContain("All Levels Complete!");
+    expect(
+      target.querySelector('[data-element-id="restart-level-btn"]'),
+    ).toBeNull();
+    expect(
+      target.querySelector('[data-element-id="back-to-level1-btn"]'),
+    ).toBeNull();
+    expect(
+      target.querySelector('[data-element-id="level-complete-banner"]'),
+    ).toBeNull();
+
+    gameContainer.$destroy();
+  });
+
+  it("handles restart controls from button and keyboard using UI game state", async () => {
+    const gameEngine = createGameEngineStub();
+    const context = createGameEngineContext(gameEngine);
+    const keyboardHandler = new KeyboardHandler(gameEngine as never);
+    keyboardHandler.attach();
+
+    const target = document.body;
+    const gameContainer = new GameContainer({ target, context });
+    await tick();
+
+    try {
+      const restartButton = target.querySelector(
+        '[data-element-id="restart-button"]',
+      ) as HTMLButtonElement | null;
+      expect(restartButton).not.toBeNull();
+      restartButton?.click();
+
+      expect(gameEngine.restartLevel).toHaveBeenCalledTimes(1);
+
+      gameState.set({
+        status: "GameOver",
+        currentLevel: 2,
+        moves: 5,
+        foodCollected: 0,
+        totalFood: 1,
+      });
+      await tick();
+
+      dispatchWindowKey("x");
+      expect(gameEngine.restartLevel).toHaveBeenCalledTimes(2);
+
+      gameState.set({
+        status: "AllComplete",
+        currentLevel: 4,
+        moves: 9,
+        foodCollected: 1,
+        totalFood: 1,
+      });
+      await tick();
+
+      dispatchWindowKey("q");
+      expect(gameEngine.loadLevel).toHaveBeenCalledWith(1);
+
+      dispatchWindowKey("x");
+      expect(gameEngine.restartLevel).toHaveBeenCalledTimes(2);
+    } finally {
+      keyboardHandler.detach();
+      gameContainer.$destroy();
+    }
   });
 });
