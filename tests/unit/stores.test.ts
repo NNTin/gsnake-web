@@ -84,17 +84,29 @@ describe("stores.connectGameEngineToStores", () => {
       .__gsnakeContract;
   });
 
-  it("updates level, frame, gameState, and snakeLength on frame events", () => {
+  it("updates level on levelChanged events", () => {
     const engine = new FakeEngine();
     const currentLevel = createLevel(1);
-    const currentFrame = createFrame();
 
     connectGameEngineToStores(engine as never);
-
     engine.emit({ type: "levelChanged", level: currentLevel });
-    engine.emit({ type: "frameChanged", frame: currentFrame });
 
     expect(get(level)).toEqual(currentLevel);
+  });
+
+  it("syncs frame, gameState, snakeLength, and clears previous engine errors", () => {
+    const engine = new FakeEngine();
+    const currentFrame = createFrame();
+    const previousError: ContractError = {
+      kind: "internalError",
+      message: "stale error",
+      context: { detail: "old" },
+    };
+
+    connectGameEngineToStores(engine as never);
+    engine.emit({ type: "engineError", error: previousError });
+    engine.emit({ type: "frameChanged", frame: currentFrame });
+
     expect(get(frame)).toEqual(currentFrame);
     expect(get(gameState)).toEqual(currentFrame.state);
     expect(get(snakeLength)).toBe(2);
