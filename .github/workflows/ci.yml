@@ -201,8 +201,26 @@ jobs:
         working-directory: ${{ env.WEB_DIR }}
 
       - name: Upload coverage artifact
-        if: always()
+        if: ${{ always() && env.ACT != 'true' }}
         uses: actions/upload-artifact@v4
         with:
           name: gsnake-web-coverage
           path: ${{ env.WEB_DIR }}/coverage
+
+  required-merge-gates:
+    name: Required Merge Gates
+    if: ${{ always() && github.event_name == 'pull_request' }}
+    runs-on: ubuntu-latest
+    needs:
+      - coverage
+    steps:
+      - name: Validate required checks
+        run: |
+          echo "coverage: ${{ needs.coverage.result }}"
+
+          if [[ "${{ needs.coverage.result }}" != "success" ]]; then
+            echo "Coverage merge gate failed."
+            exit 1
+          fi
+
+          echo "Coverage merge gate passed."
