@@ -6,6 +6,7 @@
   import { availableLevels, completedLevels, gameState, level, levelLoadError } from '../stores/stores';
   import { CompletionTracker } from '../engine/CompletionTracker';
   import type { LevelDefinition } from '../types/models';
+  import SpriteLoader from './SpriteLoader.svelte';
   import GameContainer from './GameContainer.svelte';
   const gameEngine = new WasmGameEngine();
   setContext('GAME_ENGINE', gameEngine);
@@ -181,4 +182,5 @@
   }
 </script>
 
+<SpriteLoader />
 <GameContainer />
