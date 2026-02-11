@@ -15,31 +15,24 @@ jobs:
         with:
           path: gsnake-web
 
-      - name: Resolve gsnake-web directory
-        run: |
-          for candidate in "." "gsnake-web" "gsnake-web/gsnake-web"; do
-            if [ -f "${candidate}/package.json" ] && [ -f "${candidate}/scripts/detect-local-deps.js" ]; then
-              echo "WEB_DIR=${candidate}" >> "$GITHUB_ENV"
-              exit 0
-            fi
-          done
-          echo "Unable to locate gsnake-web package.json" >&2
-          ls -la
-          find . -maxdepth 3 -type f -name package.json -o -name detect-local-deps.js
-          exit 1
-
       - name: Checkout NNTin/gSnake
         uses: actions/checkout@v4
         with:
           repository: NNTin/gSnake
           path: gsnake-root
 
+      - name: Link root-repo dependencies
+        run: |
+          rm -rf "$GITHUB_WORKSPACE/gsnake-core" "$GITHUB_WORKSPACE/scripts"
+          ln -s "$GITHUB_WORKSPACE/gsnake-root/gsnake-core" "$GITHUB_WORKSPACE/gsnake-core"
+          ln -s "$GITHUB_WORKSPACE/gsnake-root/scripts" "$GITHUB_WORKSPACE/scripts"
+
       - name: Setup Node.js 20
         uses: actions/setup-node@v4
         with:
           node-version: "20"
           cache: "npm"
-          cache-dependency-path: ${{ env.WEB_DIR }}/package-lock.json
+          cache-dependency-path: gsnake-web/package-lock.json
 
       - name: Setup Rust toolchain
         uses: dtolnay/rust-toolchain@stable
@@ -49,32 +42,13 @@ jobs:
       - name: Install wasm-pack
         run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
 
-      - name: Create symlink gsnake-core
-        run: |
-          # Calculate relative path to gsnake-root based on WEB_DIR depth
-          if [ "$WEB_DIR" = "gsnake-web/gsnake-web" ]; then
-            ROOT_REL_PATH="../../gsnake-root"
-          elif [ "$WEB_DIR" = "gsnake-web" ]; then
-            ROOT_REL_PATH="../gsnake-root"
-          else
-            ROOT_REL_PATH="gsnake-root"
-          fi
-          ln -s $ROOT_REL_PATH/gsnake-core gsnake-core
-          echo "ROOT_REL_PATH=$ROOT_REL_PATH" >> "$GITHUB_ENV"
-        working-directory: ${{ env.WEB_DIR }}
-
       - name: Build WASM
-        run: python3 ${{ env.ROOT_REL_PATH }}/scripts/build_wasm.py
-        working-directory: ${{ env.WEB_DIR }}
-
-      - name: Configure dependencies for root repo mode
-        run: node scripts/detect-local-deps.js
-        working-directory: ${{ env.WEB_DIR }}
+        run: python3 "$GITHUB_WORKSPACE/scripts/build_wasm.py"
 
       - name: Install dependencies
-        run: npm install
-        working-directory: ${{ env.WEB_DIR }}
+        run: npm ci
+        working-directory: gsnake-web
 
       - name: Run tests
         run: npm test
-        working-directory: ${{ env.WEB_DIR }}
+        working-directory: gsnake-web

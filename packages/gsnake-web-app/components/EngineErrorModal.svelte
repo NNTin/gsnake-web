@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { Modal } from "gsnake-web-ui";
   import { engineError } from '../stores/stores';
 
   function handleReload() {
@@ -10,8 +11,8 @@
   }
 </script>
 
-<div class="modal" data-element-id="engine-error-modal">
-  <h2>Engine Error</h2>
+<Modal open={true} data-element-id="engine-error-modal">
+  <h2 slot="header" class="modal-title">Engine Error</h2>
   <p class="message">
     {$engineError?.message ?? 'Unexpected engine error.'}
   </p>
@@ -22,21 +23,14 @@
     <button class="modal-btn primary" on:click={handleReload}>Reload</button>
     <button class="modal-btn secondary" on:click={handleDismiss}>Dismiss</button>
   </div>
-</div>
+</Modal>
 
 <style>
-  .modal {
-    background: white;
-    padding: 30px;
-    border-radius: 8px;
-    text-align: center;
-    min-width: 320px;
-    max-width: 420px;
-  }
-  .modal h2 {
+  .modal-title {
+    margin: 0;
     margin-bottom: 12px;
     color: #333;
-    margin-top: 0;
+    text-align: center;
   }
   .message {
     margin: 0 0 10px;

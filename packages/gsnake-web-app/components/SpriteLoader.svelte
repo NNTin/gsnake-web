@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount, onDestroy } from "svelte";
-  import spritesUrl from "../assets/sprites.svg?url";
+  import { spritesUrl } from "gsnake-web-ui";
 
   let spriteContent = "";
 

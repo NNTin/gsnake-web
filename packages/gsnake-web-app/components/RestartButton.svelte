@@ -1,8 +1,7 @@
 <script lang="ts">
-  import { getContext } from 'svelte';
   import type { WasmGameEngine } from '../engine/WasmGameEngine';
 
-  const gameEngine = getContext<WasmGameEngine>('GAME_ENGINE');
+  export let gameEngine: WasmGameEngine;
 
   function handleRestart() {
     gameEngine.restartLevel();

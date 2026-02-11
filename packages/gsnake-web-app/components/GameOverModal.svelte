@@ -1,8 +1,9 @@
 <script lang="ts">
-  import { getContext, onMount } from 'svelte';
+  import { Modal } from "gsnake-web-ui";
+  import { onMount } from 'svelte';
   import type { WasmGameEngine } from '../engine/WasmGameEngine';
 
-  const gameEngine = getContext<WasmGameEngine>('GAME_ENGINE');
+  export let gameEngine: WasmGameEngine;
   let restartButton: HTMLButtonElement;
 
   onMount(() => {
@@ -18,27 +19,21 @@
   }
 </script>
 
-<div class="modal">
-  <h2>Game Over</h2>
+<Modal open={true}>
+  <h2 slot="header" class="modal-title">Game Over</h2>
   <div class="modal-buttons">
     <button class="modal-btn primary" bind:this={restartButton} on:click={handleRestartLevel} data-element-id="restart-level-btn">Restart Level</button>
     <button class="modal-btn secondary" on:click={handleBackToLevel1} data-element-id="back-to-level1-btn">Back to Level 1</button>
   </div>
-</div>
+</Modal>
 
 <style>
-  .modal {
-    background: white;
-    padding: 30px;
-    border-radius: 8px;
-    text-align: center;
-    min-width: 300px;
-  }
-  .modal h2 {
-    margin-bottom: 20px;
+  .modal-title {
+    margin: 0;
     color: #333;
-    margin-top: 0;
+    text-align: center;
   }
+
   .modal-buttons {
     display: flex;
     gap: 10px;

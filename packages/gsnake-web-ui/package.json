@@ -1,0 +1,29 @@
+{
+  "name": "gsnake-web-ui",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "default": "./index.js"
+    },
+    "./styles/app.css": "./styles/app.css",
+    "./assets/sprites.svg": "./assets/sprites.svg"
+  },
+  "scripts": {
+    "prebuild": "node ../../scripts/validate-sprites.js",
+    "build": "node scripts/build-components.js",
+    "watch": "node scripts/build-components.js --watch",
+    "prepare": "npm run build"
+  },
+  "devDependencies": {
+    "chokidar": "^4.0.3",
+    "svelte": "^5.43.8"
+  },
+  "peerDependencies": {
+    "svelte": "^5.0.0"
+  }
+}

@@ -1,10 +1,19 @@
 import { defineConfig } from "vitest/config";
 import { svelte } from "@sveltejs/vite-plugin-svelte";
 import wasm from "vite-plugin-wasm";
-import topLevelAwait from "vite-plugin-top-level-await";
 
 export default defineConfig({
-  plugins: [wasm(), topLevelAwait(), svelte()],
+  plugins: [
+    wasm(),
+    svelte({
+      compilerOptions: {
+        runes: false,
+        compatibility: {
+          componentApi: 4,
+        },
+      },
+    }),
+  ],
   test: {
     globals: true,
     environment: "node",
@@ -12,7 +21,6 @@ export default defineConfig({
       provider: "v8",
       reporter: ["text", "json-summary", "json", "html", "lcov"],
       reportsDirectory: "coverage",
-      all: true,
       include: [
         "App.svelte",
         "components/**/*.svelte",

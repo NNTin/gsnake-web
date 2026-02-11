@@ -1,15 +1,9 @@
 <script lang="ts">
   import type { CellType } from "../types/models";
 
-  export let type: CellType;
+export let type: CellType;
 
-  $: symbolId = getSymbolId(type);
   $: opacity = getOpacity(type);
-
-  function getSymbolId(t: CellType): string {
-    if (t === "FallingFood") return "Food";
-    return t;
-  }
 
   function getOpacity(t: CellType): number {
     switch (t) {
@@ -33,7 +27,7 @@
 </script>
 
 <svg class="cell" viewBox="0 0 32 32" style="opacity: {opacity}">
-  <use href="#{symbolId}" />
+  <use href="#{type}" />
 </svg>
 
 <style>

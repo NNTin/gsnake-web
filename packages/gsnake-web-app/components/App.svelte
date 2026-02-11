@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onMount, onDestroy, setContext } from 'svelte';
+  import { onMount, onDestroy } from 'svelte';
   import { WasmGameEngine } from '../engine/WasmGameEngine';
   import { KeyboardHandler } from '../engine/KeyboardHandler';
   import { connectGameEngineToStores } from '../stores/stores';
@@ -9,7 +9,6 @@
   import SpriteLoader from './SpriteLoader.svelte';
   import GameContainer from './GameContainer.svelte';
   const gameEngine = new WasmGameEngine();
-  setContext('GAME_ENGINE', gameEngine);
 
   let keyboardHandler: KeyboardHandler;
   let lastCompletedId: number | null = null;
@@ -183,4 +182,4 @@
 </script>
 
 <SpriteLoader />
-<GameContainer />
+<GameContainer {gameEngine} />

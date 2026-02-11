@@ -84,10 +84,6 @@ function createGameEngineStub(): GameEngineStub {
   };
 }
 
-function createGameEngineContext(engine: GameEngineStub): Map<string, unknown> {
-  return new Map([["GAME_ENGINE", engine]]);
-}
-
 function dispatchWindowKey(key: string): KeyboardEvent {
   const event = new KeyboardEvent("keydown", {
     key,
@@ -120,11 +116,13 @@ describe("Level UI flows", () => {
     completedLevels.set([1]);
 
     const gameEngine = createGameEngineStub();
-    const context = createGameEngineContext(gameEngine);
 
     const target = document.body;
     const selectorButton = new LevelSelectorButton({ target });
-    const selectorOverlay = new LevelSelectorOverlay({ target, context });
+    const selectorOverlay = new LevelSelectorOverlay({
+      target,
+      props: { gameEngine },
+    });
 
     expect(
       document.querySelector('[data-element-id="level-selector-overlay"]'),
@@ -176,10 +174,12 @@ describe("Level UI flows", () => {
     levelSelectorOpen.set(true);
 
     const gameEngine = createGameEngineStub();
-    const context = createGameEngineContext(gameEngine);
 
     const target = document.body;
-    const selectorOverlay = new LevelSelectorOverlay({ target, context });
+    const selectorOverlay = new LevelSelectorOverlay({
+      target,
+      props: { gameEngine },
+    });
     await tick();
 
     const cards = target.querySelectorAll("button.level-card");
@@ -227,7 +227,6 @@ describe("Level UI flows", () => {
 
   it("shows level-complete banner and hides modal CTAs", async () => {
     const gameEngine = createGameEngineStub();
-    const context = createGameEngineContext(gameEngine);
     gameState.set({
       status: "LevelComplete",
       currentLevel: 2,
@@ -238,7 +237,7 @@ describe("Level UI flows", () => {
     level.set(createLevel(2, "hard"));
 
     const target = document.body;
-    const gameContainer = new GameContainer({ target, context });
+    const gameContainer = new GameContainer({ target, props: { gameEngine } });
     await tick();
 
     expect(
@@ -259,7 +258,6 @@ describe("Level UI flows", () => {
 
   it("shows game-over CTAs and wires modal actions to the engine", async () => {
     const gameEngine = createGameEngineStub();
-    const context = createGameEngineContext(gameEngine);
     gameState.set({
       status: "GameOver",
       currentLevel: 3,
@@ -269,7 +267,7 @@ describe("Level UI flows", () => {
     });
 
     const target = document.body;
-    const gameContainer = new GameContainer({ target, context });
+    const gameContainer = new GameContainer({ target, props: { gameEngine } });
     await tick();
 
     const restartLevelButton = target.querySelector(
@@ -295,7 +293,6 @@ describe("Level UI flows", () => {
 
   it("shows all-complete UI without game-over CTAs", async () => {
     const gameEngine = createGameEngineStub();
-    const context = createGameEngineContext(gameEngine);
     gameState.set({
       status: "AllComplete",
       currentLevel: 4,
@@ -305,7 +302,7 @@ describe("Level UI flows", () => {
     });
 
     const target = document.body;
-    const gameContainer = new GameContainer({ target, context });
+    const gameContainer = new GameContainer({ target, props: { gameEngine } });
     await tick();
 
     expect(target.querySelector('[data-element-id="overlay"]')).not.toBeNull();
@@ -325,12 +322,11 @@ describe("Level UI flows", () => {
 
   it("handles restart controls from button and keyboard using UI game state", async () => {
     const gameEngine = createGameEngineStub();
-    const context = createGameEngineContext(gameEngine);
     const keyboardHandler = new KeyboardHandler(gameEngine as never);
     keyboardHandler.attach();
 
     const target = document.body;
-    const gameContainer = new GameContainer({ target, context });
+    const gameContainer = new GameContainer({ target, props: { gameEngine } });
     await tick();
 
     try {

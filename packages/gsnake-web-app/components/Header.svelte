@@ -1,14 +1,17 @@
 <script lang="ts">
+  import type { WasmGameEngine } from "../engine/WasmGameEngine";
   import ScoreDisplay from './ScoreDisplay.svelte';
   import RestartButton from './RestartButton.svelte';
   import LevelSelectorButton from './LevelSelectorButton.svelte';
+
+  export let gameEngine: WasmGameEngine;
 </script>
 
 <div class="header">
   <ScoreDisplay />
   <div class="header-actions">
     <LevelSelectorButton />
-    <RestartButton />
+    <RestartButton {gameEngine} />
   </div>
 </div>
 

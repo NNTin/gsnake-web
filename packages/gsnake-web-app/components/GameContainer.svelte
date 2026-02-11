@@ -1,17 +1,20 @@
 <script lang="ts">
+  import type { WasmGameEngine } from "../engine/WasmGameEngine";
   import Header from './Header.svelte';
   import GameGrid from './GameGrid.svelte';
   import Overlay from './Overlay.svelte';
   import LevelSelectorOverlay from './LevelSelectorOverlay.svelte';
   import LevelCompleteBanner from './LevelCompleteBanner.svelte';
+
+  export let gameEngine: WasmGameEngine;
 </script>
 
 <div class="game-container">
-  <Header />
+  <Header {gameEngine} />
   <LevelCompleteBanner />
   <GameGrid />
-  <Overlay />
-  <LevelSelectorOverlay />
+  <Overlay {gameEngine} />
+  <LevelSelectorOverlay {gameEngine} />
 </div>
 
 <style>

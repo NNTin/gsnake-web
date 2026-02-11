@@ -1,9 +1,13 @@
 <script lang="ts">
+  import type { WasmGameEngine } from "../engine/WasmGameEngine";
+  import { Overlay as SharedOverlay } from "gsnake-web-ui";
   import { engineError, gameState, levelLoadError } from '../stores/stores';
   import GameOverModal from './GameOverModal.svelte';
   import GameCompleteModal from './GameCompleteModal.svelte';
   import EngineErrorModal from './EngineErrorModal.svelte';
   import LevelLoadErrorModal from './LevelLoadErrorModal.svelte';
+
+  export let gameEngine: WasmGameEngine;
 
   $: showLevelLoadError = $levelLoadError !== null;
   $: showEngineError = $engineError !== null;
@@ -12,31 +16,14 @@
   $: active = showLevelLoadError || showEngineError || showGameOver || showGameComplete;
 </script>
 
-{#if active}
-  <div class="overlay active" data-element-id="overlay">
-    {#if showLevelLoadError}
-      <LevelLoadErrorModal />
-    {:else if showEngineError}
-      <EngineErrorModal />
-    {:else if showGameOver}
-      <GameOverModal />
-    {:else if showGameComplete}
-      <GameCompleteModal />
-    {/if}
-  </div>
-{/if}
-
-<style>
-  .overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0,0,0,0.7);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 100;
-  }
-</style>
+<SharedOverlay visible={active} data-element-id="overlay">
+  {#if showLevelLoadError}
+    <LevelLoadErrorModal />
+  {:else if showEngineError}
+    <EngineErrorModal />
+  {:else if showGameOver}
+    <GameOverModal {gameEngine} />
+  {:else if showGameComplete}
+    <GameCompleteModal />
+  {/if}
+</SharedOverlay>

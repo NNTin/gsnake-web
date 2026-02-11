@@ -1,10 +1,9 @@
 <script lang="ts">
-  import { getContext } from 'svelte';
   import { availableLevels, completedLevels, gameState, levelSelectorOpen } from '../stores/stores';
   import type { LevelDefinition } from '../types/models';
   import type { WasmGameEngine } from '../engine/WasmGameEngine';
 
-  const gameEngine = getContext('GAME_ENGINE') as WasmGameEngine;
+  export let gameEngine: WasmGameEngine;
 
   $: currentLevelId = $gameState.currentLevel;
 
