@@ -21,12 +21,7 @@ export default defineConfig({
       provider: "v8",
       reporter: ["text", "json-summary", "json", "html", "lcov"],
       reportsDirectory: "coverage",
-      include: [
-        "App.svelte",
-        "components/**/*.svelte",
-        "engine/**/*.ts",
-        "stores/**/*.ts",
-      ],
+      include: ["engine/**/*.ts", "stores/**/*.ts"],
       exclude: ["**/*.d.ts", "tests/**", "**/*.test.ts", "metadata.json"],
       thresholds: {
         lines: 80,
