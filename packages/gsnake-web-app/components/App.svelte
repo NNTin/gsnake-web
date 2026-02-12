@@ -3,9 +3,9 @@
   import { WasmGameEngine } from '../engine/WasmGameEngine';
   import { KeyboardHandler } from '../engine/KeyboardHandler';
   import { connectGameEngineToStores } from '../stores/stores';
-  import { availableLevels, completedLevels, gameState, level, levelLoadError } from '../stores/stores';
+  import { availableLevels, completedLevels, engineError, gameState, level, levelLoadError } from '../stores/stores';
   import { CompletionTracker } from '../engine/CompletionTracker';
-  import type { LevelDefinition } from '../types/models';
+  import type { ContractError, LevelDefinition } from '../types/models';
   import SpriteLoader from './SpriteLoader.svelte';
   import GameContainer from './GameContainer.svelte';
   const gameEngine = new WasmGameEngine();
@@ -49,8 +49,20 @@
       }
     }
 
-    await gameEngine.init(customLevels, startLevel);
-    availableLevels.set(gameEngine.getLevels());
+    try {
+      await gameEngine.init(customLevels, startLevel);
+      availableLevels.set(gameEngine.getLevels());
+    } catch (error) {
+      console.error('Failed to initialize game engine', error);
+      const contractError = asContractError(error);
+      if (contractError) {
+        engineError.set(contractError);
+      } else {
+        levelLoadError.set(
+          'Failed to initialize game engine. Please reload and try again.'
+        );
+      }
+    }
   });
 
   onDestroy(() => {
@@ -178,6 +190,15 @@
 
   function isFiniteNumber(value: unknown): value is number {
     return typeof value === 'number' && Number.isFinite(value);
+  }
+
+  function asContractError(error: unknown): ContractError | null {
+    if (!error || typeof error !== 'object') return null;
+    const candidate = error as ContractError;
+    if (typeof candidate.kind !== 'string' || typeof candidate.message !== 'string') {
+      return null;
+    }
+    return candidate;
   }
 </script>
 

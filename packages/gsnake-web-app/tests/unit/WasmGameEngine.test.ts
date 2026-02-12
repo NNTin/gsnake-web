@@ -119,6 +119,15 @@ describe("WasmGameEngine", () => {
     expect(events[1]).toEqual({ type: "frameChanged", frame: wasmMock.frame });
   });
 
+  it("clamps start level above the available range", async () => {
+    const levels = [createLevel(1), createLevel(2)];
+    const engine = new WasmGameEngine();
+
+    await engine.init(levels, 99);
+
+    expect(wasmMock.constructedLevels).toEqual([levels[1]]);
+  });
+
   it("falls back to getLevels when levels are not provided", async () => {
     const levels = [createLevel(10)];
     wasmMock.getLevels.mockReturnValue(levels);
@@ -163,6 +172,22 @@ describe("WasmGameEngine", () => {
       expect(errorEvent.error.kind).toBe("initializationFailed");
       expect(errorEvent.error.message).toBe("Failed to load levels");
       expect(errorEvent.error.context?.detail).toContain("levels unavailable");
+    }
+  });
+
+  it("emits initializationFailed error when no levels are available", async () => {
+    const engine = new WasmGameEngine();
+    const events: GameEvent[] = [];
+    engine.addEventListener((event) => events.push(event));
+
+    await expect(engine.init([])).rejects.toThrow("No levels available");
+
+    const errorEvent = events.find((event) => event.type === "engineError");
+    expect(errorEvent).toBeDefined();
+    if (errorEvent && errorEvent.type === "engineError") {
+      expect(errorEvent.error.kind).toBe("initializationFailed");
+      expect(errorEvent.error.message).toBe("Failed to initialize engine");
+      expect(errorEvent.error.context?.detail).toContain("No levels available");
     }
   });
 

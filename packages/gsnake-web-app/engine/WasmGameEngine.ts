@@ -60,7 +60,21 @@ export class WasmGameEngine {
     }
     const normalizedStartLevel =
       Number.isInteger(startLevel) && startLevel > 0 ? startLevel : 1;
-    this.currentLevelIndex = normalizedStartLevel - 1;
+    const clampedStartLevel =
+      this.levels.length === 0
+        ? 1
+        : Math.min(normalizedStartLevel, this.levels.length);
+    this.currentLevelIndex = clampedStartLevel - 1;
+
+    if (this.levels.length === 0) {
+      const error = new Error("No levels available");
+      this.handleContractError(
+        error,
+        "Failed to initialize engine",
+        "initializationFailed",
+      );
+      throw error;
+    }
 
     // Load the first level
     await this.loadLevelByIndex(this.currentLevelIndex);
