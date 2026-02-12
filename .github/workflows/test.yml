@@ -11,17 +11,24 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout gsnake-web
+        if: ${{ env.ACT != 'true' }}
         uses: actions/checkout@v4
         with:
           path: gsnake-web
 
+      - name: Checkout current workspace (act)
+        if: ${{ env.ACT == 'true' }}
+        uses: actions/checkout@v4
+
       - name: Checkout NNTin/gSnake
+        if: ${{ env.ACT != 'true' }}
         uses: actions/checkout@v4
         with:
           repository: NNTin/gSnake
           path: gsnake-root
 
       - name: Link root-repo dependencies
+        if: ${{ env.ACT != 'true' }}
         run: |
           rm -rf "$GITHUB_WORKSPACE/gsnake-core" "$GITHUB_WORKSPACE/scripts"
           ln -s "$GITHUB_WORKSPACE/gsnake-root/gsnake-core" "$GITHUB_WORKSPACE/gsnake-core"

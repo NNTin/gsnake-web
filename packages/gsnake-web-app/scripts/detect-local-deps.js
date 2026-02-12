@@ -18,6 +18,7 @@ const __dirname = dirname(__filename);
 const projectRoot = join(__dirname, "..");
 const workspaceRoot = join(projectRoot, "..", "..");
 const packageJsonPath = join(projectRoot, "package.json");
+const packageLockPath = join(workspaceRoot, "package-lock.json");
 
 const forceGitDeps =
   process.env.FORCE_GIT_DEPS === "1" || process.env.FORCE_GIT_DEPS === "true";
@@ -53,6 +54,8 @@ const isRootRepo =
 const localPathDependency =
   "file:../../../gsnake-core/engine/bindings/wasm/pkg";
 const vendorDependency = "file:../../vendor/gsnake-wasm";
+const localLockResolved = "../gsnake-core/engine/bindings/wasm/pkg";
+const vendorLockResolved = "vendor/gsnake-wasm";
 const vendorDir = join(workspaceRoot, "vendor", "gsnake-wasm");
 const vendorBaseUrl =
   "https://raw.githubusercontent.com/nntin/gsnake/main/gsnake-core/engine/bindings/wasm/pkg";
@@ -113,8 +116,9 @@ const ensureVendorWasm = async () => {
 /**
  * @param {string} targetDependency
  * @param {string} label
+ * @param {string} targetResolved
  */
-const updateDependency = (targetDependency, label) => {
+const updateDependency = (targetDependency, label, targetResolved) => {
   const packageJson = JSON.parse(readFileSync(packageJsonPath, "utf8"));
   const currentDep = packageJson.dependencies["gsnake-wasm"];
 
@@ -128,6 +132,54 @@ const updateDependency = (targetDependency, label) => {
   } else {
     console.log(
       `[detect-local-deps] ✓ package.json already configured for ${label}`,
+    );
+  }
+
+  if (!existsSync(packageLockPath)) {
+    console.log(
+      "[detect-local-deps] package-lock.json not found, skipping lock update",
+    );
+    return;
+  }
+
+  const packageLock = JSON.parse(readFileSync(packageLockPath, "utf8"));
+  const packages = packageLock.packages ?? {};
+  let lockChanged = false;
+
+  const appPackage = packages["packages/gsnake-web-app"];
+  if (!appPackage || !appPackage.dependencies) {
+    console.warn(
+      "[detect-local-deps] Unexpected package-lock.json format for gsnake-web-app; skipping lock update",
+    );
+  } else if (appPackage.dependencies["gsnake-wasm"] !== targetDependency) {
+    appPackage.dependencies["gsnake-wasm"] = targetDependency;
+    lockChanged = true;
+  }
+
+  const nodeModule = packages["node_modules/gsnake-wasm"] ?? {};
+  if (nodeModule.resolved !== targetResolved || nodeModule.link !== true) {
+    nodeModule.resolved = targetResolved;
+    nodeModule.link = true;
+    packages["node_modules/gsnake-wasm"] = nodeModule;
+    lockChanged = true;
+  }
+
+  if (!packages[targetResolved]) {
+    const template =
+      packages[localLockResolved] ?? packages[vendorLockResolved] ?? null;
+    packages[targetResolved] = template
+      ? JSON.parse(JSON.stringify(template))
+      : { name: "gsnake-wasm", version: "0.1.0" };
+    lockChanged = true;
+  }
+
+  if (lockChanged) {
+    packageLock.packages = packages;
+    writeFileSync(packageLockPath, JSON.stringify(packageLock, null, 2) + "\n");
+    console.log(`[detect-local-deps] ✓ package-lock.json updated for ${label}`);
+  } else {
+    console.log(
+      `[detect-local-deps] ✓ package-lock.json already configured for ${label}`,
     );
   }
 };
@@ -150,7 +202,11 @@ const run = async () => {
     }
 
     // Ensure package.json uses local path
-    updateDependency(localPathDependency, "local development");
+    updateDependency(
+      localPathDependency,
+      "local development",
+      localLockResolved,
+    );
     return;
   }
 
@@ -162,7 +218,7 @@ const run = async () => {
   );
 
   await ensureVendorWasm();
-  updateDependency(vendorDependency, "standalone mode");
+  updateDependency(vendorDependency, "standalone mode", vendorLockResolved);
 };
 
 run()
