@@ -119,11 +119,44 @@ describe("WasmGameEngine", () => {
     expect(events[1]).toEqual({ type: "frameChanged", frame: wasmMock.frame });
   });
 
-  it("clamps start level above the available range", async () => {
+  it("falls back to level 1 when start level is above the available range", async () => {
     const levels = [createLevel(1), createLevel(2)];
     const engine = new WasmGameEngine();
 
     await engine.init(levels, 99);
+
+    expect(wasmMock.constructedLevels).toEqual([levels[0]]);
+  });
+
+  it("rejects invalid query-like start level values and falls back to level 1", async () => {
+    const levels = [createLevel(1), createLevel(2)];
+    const invalidStartLevels: Array<number | string | null> = [
+      "",
+      "  ",
+      "NaN",
+      "2.5",
+      "abc",
+      0,
+      -1,
+      Number.NaN,
+      null,
+    ];
+
+    for (const startLevel of invalidStartLevels) {
+      wasmMock.constructedLevels.length = 0;
+      const engine = new WasmGameEngine();
+
+      await engine.init(levels, startLevel);
+
+      expect(wasmMock.constructedLevels).toEqual([levels[0]]);
+    }
+  });
+
+  it("accepts positive integer query-like start level values", async () => {
+    const levels = [createLevel(1), createLevel(2)];
+    const engine = new WasmGameEngine();
+
+    await engine.init(levels, "2");
 
     expect(wasmMock.constructedLevels).toEqual([levels[1]]);
   });

@@ -2,6 +2,16 @@
 
 ## WasmGameEngine Initialization
 
+### Start Level Parsing Ownership
+
+`WasmGameEngine.init(...)` is the canonical place for startup level sanitization.
+
+- Pass raw URL query values (for example `URLSearchParams.get("level")`) into `init`.
+- `WasmGameEngine` strictly accepts positive integers only.
+- Invalid values (`NaN`, empty strings, decimals, text, non-positive numbers, or out-of-range values) must resolve to level 1.
+
+This keeps startup behavior deterministic across all callers and avoids drift between UI parsing code and engine behavior.
+
 ### Frame Emission Pattern
 
 When creating or resetting the WASM engine, you MUST explicitly call `getFrame()` to emit the initial frame:

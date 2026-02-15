@@ -21,7 +21,7 @@ export class WasmGameEngine {
 
   async init(
     levels: LevelDefinition[] | null = null,
-    startLevel: number = 1,
+    startLevel: number | string | null = 1,
   ): Promise<void> {
     if (this.initialized) {
       console.warn("WasmGameEngine already initialized");
@@ -58,13 +58,8 @@ export class WasmGameEngine {
       );
       throw error;
     }
-    const normalizedStartLevel =
-      Number.isInteger(startLevel) && startLevel > 0 ? startLevel : 1;
-    const clampedStartLevel =
-      this.levels.length === 0
-        ? 1
-        : Math.min(normalizedStartLevel, this.levels.length);
-    this.currentLevelIndex = clampedStartLevel - 1;
+    const normalizedStartLevel = this.normalizeStartLevel(startLevel);
+    this.currentLevelIndex = this.resolveStartLevel(normalizedStartLevel) - 1;
 
     if (this.levels.length === 0) {
       const error = new Error("No levels available");
@@ -139,6 +134,36 @@ export class WasmGameEngine {
       type: "levelChanged",
       level: level,
     });
+  }
+
+  private normalizeStartLevel(startLevel: number | string | null): number {
+    if (typeof startLevel === "number") {
+      return Number.isInteger(startLevel) && startLevel > 0 ? startLevel : 1;
+    }
+
+    if (typeof startLevel === "string") {
+      const trimmed = startLevel.trim();
+      if (!/^\d+$/.test(trimmed)) {
+        return 1;
+      }
+
+      const parsed = Number.parseInt(trimmed, 10);
+      return Number.isInteger(parsed) && parsed > 0 ? parsed : 1;
+    }
+
+    return 1;
+  }
+
+  private resolveStartLevel(startLevel: number): number {
+    if (this.levels.length === 0) {
+      return 1;
+    }
+
+    if (startLevel > this.levels.length) {
+      return 1;
+    }
+
+    return startLevel;
   }
 
   private handleFrameUpdate(frame: Frame): void {
