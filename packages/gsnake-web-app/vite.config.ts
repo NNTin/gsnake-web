@@ -25,6 +25,7 @@ export default defineConfig({
     fs: {
       allow: [
         ".",
+        "../../../contracts",
         "../../../gsnake-core/engine/bindings/wasm/pkg",
         "../gsnake-web-ui",
       ],

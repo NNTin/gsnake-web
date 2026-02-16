@@ -39,7 +39,7 @@ const validateCanonicalLevel = ajv.compile(canonicalSchema);
 
 const remediationMessage =
   "Synchronize schema consumers: update contracts/level-definition.schema.json, " +
-  "align gsnake-web/packages/gsnake-web-app/contracts/levelDefinitionGuard.ts, then rerun " +
+  "align contracts/generated/level-definition-validator.ts and gsnake-web/packages/gsnake-web-app/contracts/levelDefinitionGuard.ts, then rerun " +
   "`npm run test:level-schema` and `npm test` in gsnake-web.";
 
 function readJson<T>(filePath: string): T {
@@ -57,7 +57,7 @@ function assertWebParity(caseName: string, payload: unknown): void {
   expect(
     webValid,
     [
-      `Web LevelDefinition guard drift for case '${caseName}'.`,
+      `Web LevelDefinition validator drift for case '${caseName}'.`,
       remediationMessage,
       `Canonical errors: ${JSON.stringify(validateCanonicalLevel.errors ?? [])}`,
     ].join(" "),
@@ -65,7 +65,7 @@ function assertWebParity(caseName: string, payload: unknown): void {
 }
 
 describe("LevelDefinition schema drift protection", () => {
-  test("keeps web LevelDefinition guard aligned with canonical schema outcomes", () => {
+  test("keeps web LevelDefinition validator aligned with canonical schema outcomes", () => {
     const base: JsonObject = {
       id: 101,
       name: "Fixture: Minimal Valid",
