@@ -27,6 +27,7 @@
     "@tsconfig/svelte": "^5.0.6",
     "@types/node": "^24.10.1",
     "@vitest/coverage-v8": "^4.0.18",
+    "ajv": "^8.18.0",
     "jsdom": "^27.4.0",
     "svelte": "^5.43.8",
     "svelte-check": "^4.3.4",

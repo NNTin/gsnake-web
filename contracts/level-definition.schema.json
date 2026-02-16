@@ -1,0 +1,122 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://gsnake.dev/schemas/level-definition.schema.json",
+  "title": "LevelDefinition",
+  "description": "Canonical cross-runtime level contract for gSnake.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "name",
+    "gridSize",
+    "snake",
+    "obstacles",
+    "food",
+    "exit",
+    "snakeDirection",
+    "totalFood"
+  ],
+  "properties": {
+    "id": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 4294967295,
+      "description": "Stable level identifier (u32-compatible)."
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "difficulty": {
+      "type": "string"
+    },
+    "gridSize": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["width", "height"],
+      "properties": {
+        "width": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 2147483647
+        },
+        "height": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 2147483647
+        }
+      }
+    },
+    "snake": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/position" }
+    },
+    "obstacles": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/position" }
+    },
+    "food": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/position" }
+    },
+    "exit": {
+      "$ref": "#/$defs/position"
+    },
+    "snakeDirection": {
+      "$ref": "#/$defs/direction"
+    },
+    "floatingFood": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/position" },
+      "default": []
+    },
+    "fallingFood": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/position" },
+      "default": []
+    },
+    "stones": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/position" },
+      "default": []
+    },
+    "spikes": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/position" },
+      "default": []
+    },
+    "exitIsSolid": {
+      "type": "boolean",
+      "default": true
+    },
+    "totalFood": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 4294967295,
+      "description": "Total food required for level completion. Expected to reflect food + floatingFood + fallingFood for editor/server round-trip consistency."
+    }
+  },
+  "$defs": {
+    "position": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["x", "y"],
+      "properties": {
+        "x": {
+          "type": "integer",
+          "minimum": -2147483648,
+          "maximum": 2147483647
+        },
+        "y": {
+          "type": "integer",
+          "minimum": -2147483648,
+          "maximum": 2147483647
+        }
+      }
+    },
+    "direction": {
+      "type": "string",
+      "enum": ["North", "South", "East", "West"]
+    }
+  }
+}
