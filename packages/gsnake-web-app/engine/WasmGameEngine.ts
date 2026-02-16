@@ -114,7 +114,8 @@ export class WasmGameEngine {
     // Emit initial events
     this.emitInitialEvents(level);
 
-    // Emit initial frame (the onFrame callback only fires on processMove, not on creation)
+    // Required startup sequence is documented in engine/frame-emission.md.
+    // onFrame callbacks only fire on processMove, not on engine creation/reset.
     try {
       const initialFrame = this.wasmEngine.getFrame();
       this.handleFrameUpdate(initialFrame);

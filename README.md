@@ -58,6 +58,12 @@ Validation is bidirectional:
 
 If either condition fails, build exits non-zero.
 
+## Wasm Frame Emission Contract
+
+`packages/gsnake-web-app/engine/frame-emission.md` is the authoritative guide for `WasmGameEngine` startup/reset frame emission.
+
+When modifying `WasmGameEngine` load/reset paths, keep the documented sequence intact (`levelChanged` then explicit `getFrame()` -> `frameChanged`) and update related regression tests.
+
 ## Updating Shared Art Style
 
 1. Edit `packages/gsnake-web-ui/styles/app.css`, `assets/sprites.svg`, or `components/*`.

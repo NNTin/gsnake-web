@@ -12,6 +12,7 @@ const wasmMock = vi.hoisted(() => ({
   processMoveError: null as Error | null,
   constructError: null as Error | null,
   frameCallback: null as ((frame: Frame) => void) | null,
+  getFrameCallCount: 0,
 }));
 
 vi.mock("gsnake-wasm", () => {
@@ -28,6 +29,7 @@ vi.mock("gsnake-wasm", () => {
     }
 
     getFrame(): Frame {
+      wasmMock.getFrameCallCount += 1;
       if (!wasmMock.frame) {
         throw new Error("No mock frame configured");
       }
@@ -112,6 +114,7 @@ describe("WasmGameEngine", () => {
     wasmMock.processMoveError = null;
     wasmMock.constructError = null;
     wasmMock.frameCallback = null;
+    wasmMock.getFrameCallCount = 0;
   });
 
   it("loads provided levels and normalizes invalid start level to 1", async () => {
@@ -292,9 +295,11 @@ describe("WasmGameEngine", () => {
     consoleError.mockRestore();
   });
 
-  it("advances to next level, resets current level, and stops at final level", async () => {
+  it("emits startup frame sequence on init/next/reset and stops at final level", async () => {
     const levels = [createLevel(1), createLevel(2)];
     const engine = new WasmGameEngine();
+    const events: GameEvent[] = [];
+    engine.addEventListener((event) => events.push(event));
 
     await engine.init(levels, 1);
     await engine.nextLevel();
@@ -305,6 +310,15 @@ describe("WasmGameEngine", () => {
       levels[0],
       levels[1],
       levels[1],
+    ]);
+    expect(wasmMock.getFrameCallCount).toBe(3);
+    expect(events.map((event) => event.type)).toEqual([
+      "levelChanged",
+      "frameChanged",
+      "levelChanged",
+      "frameChanged",
+      "levelChanged",
+      "frameChanged",
     ]);
   });
 });

@@ -14,29 +14,10 @@ This keeps startup behavior deterministic across all callers and avoids drift be
 
 ### Frame Emission Pattern
 
-When creating or resetting the WASM engine, you MUST explicitly call `getFrame()` to emit the initial frame:
+Canonical reference: `engine/frame-emission.md`
 
-```typescript
-// After creating the WASM engine
-this.wasmEngine = new RustEngine(level);
-
-// Register frame callback for future updates
-this.wasmEngine.onFrame((frame: Frame) => {
-  this.handleFrameUpdate(frame);
-});
-
-// IMPORTANT: Get and emit the initial frame
-// The onFrame callback only fires when processMove() is called, NOT on initialization
-const initialFrame = this.wasmEngine.getFrame();
-this.handleFrameUpdate(initialFrame);
-```
-
-**Why this matters:**
-
-- The `onFrame(callback)` only fires when `processMove()` is called
-- Without calling `getFrame()` after initialization, the UI won't render the game grid
-- The Svelte `frame` store will remain empty, causing `.cell` elements to not appear
-- Other UI elements (header, buttons) may work because they depend on `levelChanged` events, but the grid requires `frameChanged` events
+- Keep all frame-emission behavior details in that file.
+- When changing load/reset paths in `WasmGameEngine`, update that document and related regression tests together.
 
 ### Available WASM Methods
 
