@@ -68,3 +68,4 @@ For `WasmGameEngine` unit tests, mock `gsnake-wasm` with a `vi.hoisted` state ob
 
 - This allows deterministic control of `init_wasm`, `getLevels`, constructor failures, and `processMove` throws.
 - To validate contract error passthrough, throw a plain `{ kind, message, context }` object from the mocked Rust engine and assert `engineError` emits the same payload.
+- For query-level startup regressions, use scenario tables and assert both selected level identity and startup event invariants (`levelChanged` then `frameChanged`, no `engineError`).

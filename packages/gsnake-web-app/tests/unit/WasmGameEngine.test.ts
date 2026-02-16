@@ -89,6 +89,17 @@ function createFrame(status: Frame["state"]["status"] = "Playing"): Frame {
   };
 }
 
+async function initEngineAndCollectEvents(
+  levels: LevelDefinition[],
+  startLevel: number | string | null,
+): Promise<{ engine: WasmGameEngine; events: GameEvent[] }> {
+  const engine = new WasmGameEngine();
+  const events: GameEvent[] = [];
+  engine.addEventListener((event) => events.push(event));
+  await engine.init(levels, startLevel);
+  return { engine, events };
+}
+
 describe("WasmGameEngine", () => {
   beforeEach(() => {
     wasmMock.initWasm.mockReset();
@@ -119,46 +130,46 @@ describe("WasmGameEngine", () => {
     expect(events[1]).toEqual({ type: "frameChanged", frame: wasmMock.frame });
   });
 
-  it("falls back to level 1 when start level is above the available range", async () => {
-    const levels = [createLevel(1), createLevel(2)];
-    const engine = new WasmGameEngine();
-
-    await engine.init(levels, 99);
-
-    expect(wasmMock.constructedLevels).toEqual([levels[0]]);
-  });
-
-  it("rejects invalid query-like start level values and falls back to level 1", async () => {
-    const levels = [createLevel(1), createLevel(2)];
-    const invalidStartLevels: Array<number | string | null> = [
-      "",
-      "  ",
-      "NaN",
-      "2.5",
-      "abc",
-      0,
-      -1,
-      Number.NaN,
-      null,
+  it("handles query-parameter level permutations deterministically", async () => {
+    const levels = [createLevel(10), createLevel(20), createLevel(30)];
+    const scenarios: Array<{
+      label: string;
+      startLevel: number | string | null;
+      expectedIndex: number;
+    }> = [
+      { label: "valid integer", startLevel: "2", expectedIndex: 1 },
+      { label: "NaN string", startLevel: "NaN", expectedIndex: 0 },
+      { label: "empty string", startLevel: "", expectedIndex: 0 },
+      { label: "decimal string", startLevel: "2.5", expectedIndex: 0 },
+      { label: "text string", startLevel: "abc", expectedIndex: 0 },
+      { label: "below-range string", startLevel: "-1", expectedIndex: 0 },
+      { label: "below-range number", startLevel: 0, expectedIndex: 0 },
+      { label: "above-range string", startLevel: "999", expectedIndex: 0 },
+      { label: "above-range number", startLevel: 99, expectedIndex: 0 },
+      { label: "NaN number", startLevel: Number.NaN, expectedIndex: 0 },
+      { label: "null value", startLevel: null, expectedIndex: 0 },
     ];
 
-    for (const startLevel of invalidStartLevels) {
+    for (const scenario of scenarios) {
       wasmMock.constructedLevels.length = 0;
-      const engine = new WasmGameEngine();
+      const { engine, events } = await initEngineAndCollectEvents(
+        levels,
+        scenario.startLevel,
+      );
+      const expectedLevel = levels[scenario.expectedIndex];
 
-      await engine.init(levels, startLevel);
-
-      expect(wasmMock.constructedLevels).toEqual([levels[0]]);
+      expect(wasmMock.constructedLevels).toEqual([expectedLevel]);
+      expect(engine.getLevels()).toEqual(levels);
+      expect(events).toHaveLength(2);
+      expect(events[0]).toEqual({ type: "levelChanged", level: expectedLevel });
+      expect(events[1]).toEqual({
+        type: "frameChanged",
+        frame: wasmMock.frame,
+      });
+      expect(
+        events.find((event) => event.type === "engineError"),
+      ).toBeUndefined();
     }
-  });
-
-  it("accepts positive integer query-like start level values", async () => {
-    const levels = [createLevel(1), createLevel(2)];
-    const engine = new WasmGameEngine();
-
-    await engine.init(levels, "2");
-
-    expect(wasmMock.constructedLevels).toEqual([levels[1]]);
   });
 
   it("falls back to getLevels when levels are not provided", async () => {
