@@ -9,25 +9,32 @@ import type {
   ContractError,
 } from "../../types/models";
 
+const VALID_CELL_TYPES: CellType[] = [
+  "Empty",
+  "SnakeHead",
+  "SnakeBody",
+  "Food",
+  "Obstacle",
+  "Exit",
+  "FloatingFood",
+  "FallingFood",
+  "Stone",
+  "Spike",
+];
+const EXTENDED_CELL_TYPES: CellType[] = [
+  "FloatingFood",
+  "FallingFood",
+  "Stone",
+  "Spike",
+];
+
 // =============================================================================
 // Type Guards
 // =============================================================================
 
 function isCellType(value: unknown): value is CellType {
   return (
-    typeof value === "string" &&
-    [
-      "Empty",
-      "SnakeHead",
-      "SnakeBody",
-      "Food",
-      "Obstacle",
-      "Exit",
-      "FloatingFood",
-      "FallingFood",
-      "Stone",
-      "Spike",
-    ].includes(value)
+    typeof value === "string" && VALID_CELL_TYPES.includes(value as CellType)
   );
 }
 
@@ -99,22 +106,51 @@ function isContractError(value: unknown): value is ContractError {
   return true;
 }
 
+function validateFrameCellTypes(value: unknown): string[] {
+  const errors: string[] = [];
+
+  if (typeof value !== "object" || value === null) {
+    return ["frame must be an object"];
+  }
+
+  const obj = value as Record<string, unknown>;
+  if (!Array.isArray(obj.grid)) {
+    return ["grid must be an array"];
+  }
+
+  obj.grid.forEach((row, rowIndex) => {
+    if (!Array.isArray(row)) {
+      errors.push(`grid[${rowIndex}] must be an array`);
+      return;
+    }
+
+    row.forEach((cell, cellIndex) => {
+      if (!isCellType(cell)) {
+        errors.push(
+          `grid[${rowIndex}][${cellIndex}] has invalid cell type: ${String(cell)}`,
+        );
+      }
+    });
+  });
+
+  return errors;
+}
+
 // =============================================================================
 // Runtime Type Validation Tests
 // =============================================================================
 
 describe("CellType runtime validation", () => {
   test("type guard accepts valid CellType", () => {
-    expect(isCellType("SnakeHead")).toBe(true);
-    expect(isCellType("Food")).toBe(true);
-    expect(isCellType("Empty")).toBe(true);
-    expect(isCellType("SnakeBody")).toBe(true);
-    expect(isCellType("Obstacle")).toBe(true);
-    expect(isCellType("Exit")).toBe(true);
-    expect(isCellType("FloatingFood")).toBe(true);
-    expect(isCellType("FallingFood")).toBe(true);
-    expect(isCellType("Stone")).toBe(true);
-    expect(isCellType("Spike")).toBe(true);
+    VALID_CELL_TYPES.forEach((cellType) => {
+      expect(isCellType(cellType)).toBe(true);
+    });
+  });
+
+  test("type guard accepts all extended CellType variants", () => {
+    EXTENDED_CELL_TYPES.forEach((cellType) => {
+      expect(isCellType(cellType)).toBe(true);
+    });
   });
 
   test("type guard rejects invalid values", () => {
@@ -234,6 +270,26 @@ describe("Frame runtime validation", () => {
     expect(isFrame(validFrame)).toBe(true);
   });
 
+  test("type guard accepts mixed frame grid with extended cell variants", () => {
+    const mixedVariantFrame = {
+      grid: [
+        ["SnakeHead", "FloatingFood", "Stone"],
+        ["SnakeBody", "FallingFood", "Spike"],
+        ["Food", "Exit", "Obstacle"],
+      ],
+      state: {
+        status: "Playing" as GameStatus,
+        currentLevel: 2,
+        moves: 9,
+        foodCollected: 4,
+        totalFood: 6,
+      },
+    };
+
+    expect(isFrame(mixedVariantFrame)).toBe(true);
+    expect(validateFrameCellTypes(mixedVariantFrame)).toEqual([]);
+  });
+
   test("type guard rejects invalid Frame", () => {
     expect(isFrame(null)).toBe(false);
     expect(isFrame({})).toBe(false);
@@ -261,6 +317,31 @@ describe("Frame runtime validation", () => {
         },
       }),
     ).toBe(false);
+  });
+
+  test("invalid cell variants fail with explicit validation errors", () => {
+    const invalidVariantFrame = {
+      grid: [
+        ["Floatingfood", "FallingFood", "Spike"], // casing regression
+        ["Stone", "Stone ", "Empty"], // whitespace variant
+        ["Obstacle", "UnknownVariant", 123], // unknown + non-string
+      ],
+      state: {
+        status: "Playing",
+        currentLevel: 1,
+        moves: 5,
+        foodCollected: 2,
+        totalFood: 3,
+      },
+    };
+
+    expect(isFrame(invalidVariantFrame)).toBe(false);
+    expect(validateFrameCellTypes(invalidVariantFrame)).toEqual([
+      "grid[0][0] has invalid cell type: Floatingfood",
+      "grid[1][1] has invalid cell type: Stone ",
+      "grid[2][1] has invalid cell type: UnknownVariant",
+      "grid[2][2] has invalid cell type: 123",
+    ]);
   });
 });
 
