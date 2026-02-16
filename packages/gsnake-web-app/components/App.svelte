@@ -13,6 +13,8 @@
 
   let keyboardHandler: KeyboardHandler;
   let lastCompletedId: number | null = null;
+  let isInitializing = true;
+  let isMounted = true;
 
   onMount(async () => {
     // Parse URL param for start level
@@ -62,10 +64,15 @@
           'Failed to initialize game engine. Please reload and try again.'
         );
       }
+    } finally {
+      if (isMounted) {
+        isInitializing = false;
+      }
     }
   });
 
   onDestroy(() => {
+    isMounted = false;
     if (keyboardHandler) {
       keyboardHandler.detach();
     }
@@ -146,4 +153,33 @@
 </script>
 
 <SpriteLoader />
-<GameContainer {gameEngine} />
+{#if isInitializing}
+  <div
+    class="startup-loading"
+    data-element-id="engine-loading-indicator"
+    role="status"
+    aria-live="polite"
+  >
+    Loading game engine...
+  </div>
+{:else}
+  <GameContainer {gameEngine} />
+{/if}
+
+<style>
+  .startup-loading {
+    width: 100%;
+    max-width: 600px;
+    min-height: 280px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #444;
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+  }
+</style>
