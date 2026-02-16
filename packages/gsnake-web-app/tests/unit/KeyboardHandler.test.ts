@@ -22,6 +22,15 @@ function createEvent(key: string, init: KeyboardEventInit = {}): KeyboardEvent {
   return new KeyboardEvent("keydown", { key, cancelable: true, ...init });
 }
 
+function dispatchWindowEvent(
+  key: string,
+  init: KeyboardEventInit = {},
+): KeyboardEvent {
+  const event = createEvent(key, { bubbles: true, ...init });
+  window.dispatchEvent(event);
+  return event;
+}
+
 describe("KeyboardHandler", () => {
   let engine: EngineStub;
   let handler: KeyboardHandler;
@@ -59,6 +68,61 @@ describe("KeyboardHandler", () => {
 
     handler.handleKeyPress(event);
 
+    expect(engine.processMove).not.toHaveBeenCalled();
+    expect(engine.restartLevel).not.toHaveBeenCalled();
+    expect(engine.loadLevel).not.toHaveBeenCalled();
+  });
+
+  it("forwards rapid directional key presses in order for engine-side lock handling", () => {
+    handler.attach();
+
+    const first = dispatchWindowEvent("ArrowUp");
+    const second = dispatchWindowEvent("ArrowLeft");
+    const third = dispatchWindowEvent("ArrowRight");
+    const fourth = dispatchWindowEvent("w");
+    const fifth = dispatchWindowEvent("D");
+
+    expect(first.defaultPrevented).toBe(true);
+    expect(second.defaultPrevented).toBe(true);
+    expect(third.defaultPrevented).toBe(true);
+    expect(fourth.defaultPrevented).toBe(true);
+    expect(fifth.defaultPrevented).toBe(true);
+    expect(
+      engine.processMove.mock.calls.map(([direction]) => direction),
+    ).toEqual(["North", "West", "East", "North", "East"]);
+    expect(engine.restartLevel).not.toHaveBeenCalled();
+    expect(engine.loadLevel).not.toHaveBeenCalled();
+  });
+
+  it("ignores movement keys when any modifier key is held", () => {
+    const modifiedEvents = [
+      createEvent("ArrowUp", { ctrlKey: true }),
+      createEvent("ArrowDown", { altKey: true }),
+      createEvent("ArrowLeft", { metaKey: true }),
+      createEvent("W", { shiftKey: true }),
+    ];
+
+    for (const event of modifiedEvents) {
+      handler.handleKeyPress(event);
+    }
+
+    expect(engine.processMove).not.toHaveBeenCalled();
+    expect(engine.restartLevel).not.toHaveBeenCalled();
+    expect(engine.loadLevel).not.toHaveBeenCalled();
+  });
+
+  it("handles non-movement keys without producing movement input", () => {
+    const noopEvent = createEvent("x");
+    const tabEvent = createEvent("Tab");
+    const escapeEvent = createEvent("Escape");
+
+    handler.handleKeyPress(noopEvent);
+    handler.handleKeyPress(tabEvent);
+    handler.handleKeyPress(escapeEvent);
+
+    expect(noopEvent.defaultPrevented).toBe(false);
+    expect(tabEvent.defaultPrevented).toBe(true);
+    expect(escapeEvent.defaultPrevented).toBe(true);
     expect(engine.processMove).not.toHaveBeenCalled();
     expect(engine.restartLevel).not.toHaveBeenCalled();
     expect(engine.loadLevel).not.toHaveBeenCalled();
