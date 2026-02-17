@@ -47,6 +47,14 @@ npm run coverage  # coverage for gsnake-web-app
 npm run preview   # preview gsnake-web-app build
 ```
 
+## Health Endpoint
+
+`GET http://localhost:3000/health` returns plain text:
+
+```text
+gsnake-web:ok
+```
+
 ## Sprite Validation Contract
 
 `gsnake-web-ui` build runs `scripts/validate-sprites.js` first.
