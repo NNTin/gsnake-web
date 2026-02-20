@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { CompletionTracker } from "../../engine/CompletionTracker";
 
 const STORAGE_KEY = "gsnake_completed_levels";
@@ -10,7 +10,26 @@ describe("CompletionTracker", () => {
     window.localStorage.clear();
   });
 
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it("returns an empty list when storage is missing", () => {
+    expect(CompletionTracker.getCompletedLevels()).toEqual([]);
+  });
+
+  it.each(["42", "{}", "null"])(
+    "returns an empty list for non-array persisted JSON payloads: %s",
+    (payload) => {
+      window.localStorage.setItem(STORAGE_KEY, payload);
+
+      expect(CompletionTracker.getCompletedLevels()).toEqual([]);
+    },
+  );
+
+  it("returns an empty list for malformed persisted JSON payloads", () => {
+    window.localStorage.setItem(STORAGE_KEY, "[1,");
+
     expect(CompletionTracker.getCompletedLevels()).toEqual([]);
   });
 
@@ -40,5 +59,17 @@ describe("CompletionTracker", () => {
 
     expect(window.localStorage.getItem(STORAGE_KEY)).toBeNull();
     expect(CompletionTracker.getCompletedLevels()).toEqual([]);
+  });
+
+  it("does not propagate storage write failures in markCompleted", () => {
+    vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
+      throw new Error("QuotaExceededError");
+    });
+
+    let result: number[] = [];
+    expect(() => {
+      result = CompletionTracker.markCompleted(5);
+    }).not.toThrow();
+    expect(result).toEqual([5]);
   });
 });

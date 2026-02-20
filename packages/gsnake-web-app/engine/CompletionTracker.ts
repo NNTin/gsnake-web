@@ -25,7 +25,11 @@ export class CompletionTracker {
     const existing = new Set(this.getCompletedLevels());
     existing.add(levelId);
     const updated = Array.from(existing.values()).sort((a, b) => a - b);
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+    try {
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+    } catch {
+      // Ignore storage quota/write failures and return in-memory result.
+    }
     return updated;
   }
 

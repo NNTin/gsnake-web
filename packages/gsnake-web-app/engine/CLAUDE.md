@@ -69,3 +69,8 @@ For `WasmGameEngine` unit tests, mock `gsnake-wasm` with a `vi.hoisted` state ob
 - Keyboard tests should cover the real listener path (`attach()` + `window.dispatchEvent(...)`) to validate prevent-default behavior and event sequencing.
 - Modifier combinations (`ctrl`, `alt`, `shift`, `meta`) should remain an early no-op guard, even when the base key maps to movement.
 - Keep per-status shortcut assertions explicit in `KeyboardHandler.test.ts`: `Playing` (`r` restart, `q` load level 1), `GameOver` restart/load behavior, `LevelComplete` no-op, and `AllComplete` return-to-level-1 flow.
+
+### CompletionTracker Storage Resilience
+
+- `CompletionTracker.getCompletedLevels()` should return `[]` for malformed JSON and for valid non-array payloads (`42`, `{}`, `null`), not just missing keys.
+- `CompletionTracker.markCompleted(...)` must swallow `localStorage.setItem` failures (for example quota/write errors) and return the in-memory sorted unique list.
