@@ -63,6 +63,28 @@ describe("KeyboardHandler", () => {
     expect(engine.loadLevel).not.toHaveBeenCalled();
   });
 
+  it("restarts level on r in playing state", () => {
+    const event = createEvent("r");
+
+    handler.handleKeyPress(event);
+
+    expect(event.defaultPrevented).toBe(true);
+    expect(engine.restartLevel).toHaveBeenCalledTimes(1);
+    expect(engine.loadLevel).not.toHaveBeenCalled();
+    expect(engine.processMove).not.toHaveBeenCalled();
+  });
+
+  it("loads level 1 on q in playing state", () => {
+    const event = createEvent("q");
+
+    handler.handleKeyPress(event);
+
+    expect(event.defaultPrevented).toBe(true);
+    expect(engine.loadLevel).toHaveBeenCalledWith(1);
+    expect(engine.restartLevel).not.toHaveBeenCalled();
+    expect(engine.processMove).not.toHaveBeenCalled();
+  });
+
   it("ignores modified key presses", () => {
     const event = createEvent("ArrowRight", { ctrlKey: true });
 
@@ -161,5 +183,23 @@ describe("KeyboardHandler", () => {
     expect(engine.loadLevel).toHaveBeenCalledWith(1);
     expect(engine.restartLevel).not.toHaveBeenCalled();
     expect(engine.processMove).not.toHaveBeenCalled();
+  });
+
+  it("ignores keypress actions in level-complete state", () => {
+    gameState.set({
+      status: "LevelComplete",
+      currentLevel: 2,
+      moves: 12,
+      foodCollected: 3,
+      totalFood: 3,
+    });
+    const event = createEvent("ArrowUp");
+
+    handler.handleKeyPress(event);
+
+    expect(event.defaultPrevented).toBe(true);
+    expect(engine.processMove).not.toHaveBeenCalled();
+    expect(engine.restartLevel).not.toHaveBeenCalled();
+    expect(engine.loadLevel).not.toHaveBeenCalled();
   });
 });
