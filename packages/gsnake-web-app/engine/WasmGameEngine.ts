@@ -1,19 +1,29 @@
 import type { ContractError, Frame, LevelDefinition } from "../types/models";
 import type { GameEvent, GameEventListener } from "../types/events";
 import type { Direction } from "../types/models";
-import init_wasm, {
-  WasmGameEngine as RustEngine,
+import * as wasmModule from "gsnake-wasm";
+
+const {
+  WasmGameEngine: RustEngine,
   getLevels,
   log,
   init_panic_hook,
-} from "gsnake-wasm";
+} = wasmModule;
+
+function getWasmInitializer(): (() => Promise<unknown>) | null {
+  const candidate = (wasmModule as { default?: unknown }).default;
+  if (typeof candidate === "function") {
+    return candidate as () => Promise<unknown>;
+  }
+  return null;
+}
 
 /**
  * TypeScript wrapper around the Rust WASM game engine
  * Provides the same interface as the original TypeScript GameEngine
  */
 export class WasmGameEngine {
-  private wasmEngine: RustEngine | null = null;
+  private wasmEngine: InstanceType<typeof RustEngine> | null = null;
   private listeners: GameEventListener[] = [];
   private initialized = false;
   private levels: LevelDefinition[] = [];
@@ -30,7 +40,10 @@ export class WasmGameEngine {
 
     // Initialize WASM module first
     try {
-      await init_wasm();
+      const initWasm = getWasmInitializer();
+      if (initWasm) {
+        await initWasm();
+      }
     } catch (error) {
       this.handleContractError(
         error,

@@ -29,6 +29,11 @@ The RustEngine (WasmGameEngine from WASM) exposes these methods:
 - `onFrame(callback)` - Registers callback for frame updates (fires on processMove)
 - `processMove(direction)` - Processes a move and fires onFrame callback
 
+### WASM Module Import Compatibility
+
+- Import `gsnake-wasm` as a namespace (`import * as wasmModule`) and use named exports (`WasmGameEngine`, `getLevels`, `log`, `init_panic_hook`).
+- Treat default initializer as optional at runtime. Current generated `pkg/gsnake_wasm.js` may have no default export, while some test mocks still provide one.
+
 ## Event Flow
 
 1. **Initialization**: `levelChanged` event is emitted (shows level info in UI)
