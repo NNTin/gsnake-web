@@ -113,11 +113,19 @@ describe("LevelDefinition schema drift protection", () => {
     const invalidOptionalShape = cloneFixture(base);
     invalidOptionalShape.stones = [{ x: 1 }];
 
+    const emptySnake = cloneFixture(base);
+    emptySnake.snake = [];
+
+    const negativeCoordinate = cloneFixture(base);
+    (negativeCoordinate.food as JsonObject[])[0].x = -1;
+
     const cases: Array<{ name: string; payload: unknown }> = [
       { name: "valid minimal fixture", payload: base },
       { name: "valid optionals fixture", payload: validOptionalsFixture },
       { name: "missing totalFood fixture", payload: missingTotalFood },
       { name: "invalid optional field fixture", payload: invalidOptionalShape },
+      { name: "empty snake", payload: emptySnake },
+      { name: "negative coordinate", payload: negativeCoordinate },
       { name: "decimal id", payload: decimalId },
       { name: "decimal totalFood", payload: decimalTotalFood },
       { name: "extra top-level property", payload: extraProperty },

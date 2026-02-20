@@ -49,6 +49,7 @@
     },
     "snake": {
       "type": "array",
+      "minItems": 1,
       "items": { "$ref": "#/$defs/position" }
     },
     "obstacles": {
@@ -104,12 +105,12 @@
       "properties": {
         "x": {
           "type": "integer",
-          "minimum": -2147483648,
+          "minimum": 0,
           "maximum": 2147483647
         },
         "y": {
           "type": "integer",
-          "minimum": -2147483648,
+          "minimum": 0,
           "maximum": 2147483647
         }
       }
