@@ -48,21 +48,33 @@ describe("Cell", () => {
     component.$destroy();
   });
 
-  it.each([
-    ["Spike", "0.8"],
-    ["Stone", "0.85"],
-    ["Obstacle", "0.9"],
-    ["Food", "1"],
-    ["SnakeHead", "1"],
-    ["FloatingFood", "1"],
-  ] as const)("applies opacity %s for %s cells", (type, expectedOpacity) => {
-    const component = renderCell(type);
+  const opacityCases = [
+    { type: "Empty", expectedOpacity: "1" },
+    { type: "SnakeHead", expectedOpacity: "1" },
+    { type: "SnakeBody", expectedOpacity: "1" },
+    { type: "Food", expectedOpacity: "1" },
+    { type: "Obstacle", expectedOpacity: "0.9" },
+    { type: "Exit", expectedOpacity: "1" },
+    { type: "FloatingFood", expectedOpacity: "1" },
+    { type: "FallingFood", expectedOpacity: "1" },
+    { type: "Stone", expectedOpacity: "0.85" },
+    { type: "Spike", expectedOpacity: "0.8" },
+  ] as const satisfies readonly {
+    readonly type: CellType;
+    readonly expectedOpacity: string;
+  }[];
 
-    const svg = getCellSvg();
-    expect(svg.style.opacity).toBe(expectedOpacity);
+  it.each(opacityCases)(
+    "applies opacity $expectedOpacity for $type cells",
+    ({ type, expectedOpacity }) => {
+      const component = renderCell(type);
 
-    component.$destroy();
-  });
+      const svg = getCellSvg();
+      expect(svg.style.opacity).toBe(expectedOpacity);
+
+      component.$destroy();
+    },
+  );
 
   it("updates sprite and opacity when the cell type changes", async () => {
     const component = renderCell("Empty");
