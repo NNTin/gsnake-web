@@ -164,9 +164,11 @@ describe("Rust fixture compatibility", () => {
 
     test("context uses camelCase keys", () => {
       const error: ContractError = loadFixture("error-with-context.json");
+      const camelCaseKey = /^[a-z][a-zA-Z0-9]*$/;
 
       if (error.context) {
         Object.keys(error.context).forEach((key) => {
+          expect(key).toMatch(camelCaseKey);
           expect(typeof error.context![key]).toBe("string");
         });
       }
