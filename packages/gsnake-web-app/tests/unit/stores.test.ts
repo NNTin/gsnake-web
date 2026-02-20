@@ -44,14 +44,17 @@ function createLevel(id: number): LevelDefinition {
   };
 }
 
-function createFrame(status: Frame["state"]["status"] = "Playing"): Frame {
+function createFrame(
+  status: Frame["state"]["status"] = "Playing",
+  grid: Frame["grid"] = [
+    ["SnakeHead", "SnakeBody", "Empty", "Empty"],
+    ["Empty", "Food", "Empty", "Empty"],
+    ["Empty", "Empty", "Empty", "Exit"],
+    ["Empty", "Empty", "Empty", "Empty"],
+  ],
+): Frame {
   return {
-    grid: [
-      ["SnakeHead", "SnakeBody", "Empty", "Empty"],
-      ["Empty", "Food", "Empty", "Empty"],
-      ["Empty", "Empty", "Empty", "Exit"],
-      ["Empty", "Empty", "Empty", "Empty"],
-    ],
+    grid,
     state: {
       status,
       currentLevel: 1,
@@ -111,6 +114,36 @@ describe("stores.connectGameEngineToStores", () => {
     expect(get(gameState)).toEqual(currentFrame.state);
     expect(get(snakeLength)).toBe(2);
     expect(get(engineError)).toBeNull();
+  });
+
+  it("counts a multi-row 5-segment snake and ignores extended non-snake cell types", () => {
+    const engine = new FakeEngine();
+    const currentFrame = createFrame("Playing", [
+      ["SnakeHead", "SnakeBody", "Stone", "Spike"],
+      ["Empty", "SnakeBody", "FloatingFood", "FallingFood"],
+      ["SnakeBody", "SnakeBody", "Food", "Exit"],
+      ["Obstacle", "Empty", "Empty", "Empty"],
+    ]);
+
+    connectGameEngineToStores(engine as never);
+    engine.emit({ type: "frameChanged", frame: currentFrame });
+
+    expect(get(snakeLength)).toBe(5);
+  });
+
+  it("sets snakeLength to 0 when a frame has no snake cells", () => {
+    const engine = new FakeEngine();
+    const currentFrame = createFrame("Playing", [
+      ["Empty", "Food", "Stone", "Spike"],
+      ["Obstacle", "FloatingFood", "FallingFood", "Exit"],
+      ["Empty", "Empty", "Empty", "Empty"],
+      ["Food", "Obstacle", "Stone", "Spike"],
+    ]);
+
+    connectGameEngineToStores(engine as never);
+    engine.emit({ type: "frameChanged", frame: currentFrame });
+
+    expect(get(snakeLength)).toBe(0);
   });
 
   it("stores engine errors from engineError events", () => {
