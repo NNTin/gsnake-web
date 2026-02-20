@@ -30,7 +30,7 @@ const schema31 = {
       description: "Stable level identifier (u32-compatible).",
     },
     name: { type: "string", minLength: 1 },
-    difficulty: { type: "string" },
+    difficulty: { type: "string", enum: ["easy", "medium", "hard"] },
     gridSize: {
       type: "object",
       additionalProperties: false,
@@ -357,7 +357,8 @@ function validate20(
       }
     }
     if (data.difficulty !== undefined) {
-      if (typeof data.difficulty !== "string") {
+      let data2 = data.difficulty;
+      if (typeof data2 !== "string") {
         const err15 = {
           instancePath: instancePath + "/difficulty",
           schemaPath: "#/properties/difficulty/type",
@@ -372,32 +373,32 @@ function validate20(
         }
         errors++;
       }
+      if (!(data2 === "easy" || data2 === "medium" || data2 === "hard")) {
+        const err16 = {
+          instancePath: instancePath + "/difficulty",
+          schemaPath: "#/properties/difficulty/enum",
+          keyword: "enum",
+          params: { allowedValues: schema31.properties.difficulty.enum },
+          message: "must be equal to one of the allowed values",
+        };
+        if (vErrors === null) {
+          vErrors = [err16];
+        } else {
+          vErrors.push(err16);
+        }
+        errors++;
+      }
     }
     if (data.gridSize !== undefined) {
       let data3 = data.gridSize;
       if (data3 && typeof data3 == "object" && !Array.isArray(data3)) {
         if (data3.width === undefined) {
-          const err16 = {
+          const err17 = {
             instancePath: instancePath + "/gridSize",
             schemaPath: "#/properties/gridSize/required",
             keyword: "required",
             params: { missingProperty: "width" },
             message: "must have required property '" + "width" + "'",
-          };
-          if (vErrors === null) {
-            vErrors = [err16];
-          } else {
-            vErrors.push(err16);
-          }
-          errors++;
-        }
-        if (data3.height === undefined) {
-          const err17 = {
-            instancePath: instancePath + "/gridSize",
-            schemaPath: "#/properties/gridSize/required",
-            keyword: "required",
-            params: { missingProperty: "height" },
-            message: "must have required property '" + "height" + "'",
           };
           if (vErrors === null) {
             vErrors = [err17];
@@ -406,9 +407,24 @@ function validate20(
           }
           errors++;
         }
+        if (data3.height === undefined) {
+          const err18 = {
+            instancePath: instancePath + "/gridSize",
+            schemaPath: "#/properties/gridSize/required",
+            keyword: "required",
+            params: { missingProperty: "height" },
+            message: "must have required property '" + "height" + "'",
+          };
+          if (vErrors === null) {
+            vErrors = [err18];
+          } else {
+            vErrors.push(err18);
+          }
+          errors++;
+        }
         for (const key1 in data3) {
           if (!(key1 === "width" || key1 === "height")) {
-            const err18 = {
+            const err19 = {
               instancePath: instancePath + "/gridSize",
               schemaPath: "#/properties/gridSize/additionalProperties",
               keyword: "additionalProperties",
@@ -416,9 +432,9 @@ function validate20(
               message: "must NOT have additional properties",
             };
             if (vErrors === null) {
-              vErrors = [err18];
+              vErrors = [err19];
             } else {
-              vErrors.push(err18);
+              vErrors.push(err19);
             }
             errors++;
           }
@@ -433,7 +449,7 @@ function validate20(
               isFinite(data4)
             )
           ) {
-            const err19 = {
+            const err20 = {
               instancePath: instancePath + "/gridSize/width",
               schemaPath: "#/properties/gridSize/properties/width/type",
               keyword: "type",
@@ -441,15 +457,15 @@ function validate20(
               message: "must be integer",
             };
             if (vErrors === null) {
-              vErrors = [err19];
+              vErrors = [err20];
             } else {
-              vErrors.push(err19);
+              vErrors.push(err20);
             }
             errors++;
           }
           if (typeof data4 == "number" && isFinite(data4)) {
             if (data4 > 2147483647 || isNaN(data4)) {
-              const err20 = {
+              const err21 = {
                 instancePath: instancePath + "/gridSize/width",
                 schemaPath: "#/properties/gridSize/properties/width/maximum",
                 keyword: "maximum",
@@ -457,14 +473,14 @@ function validate20(
                 message: "must be <= 2147483647",
               };
               if (vErrors === null) {
-                vErrors = [err20];
+                vErrors = [err21];
               } else {
-                vErrors.push(err20);
+                vErrors.push(err21);
               }
               errors++;
             }
             if (data4 < 1 || isNaN(data4)) {
-              const err21 = {
+              const err22 = {
                 instancePath: instancePath + "/gridSize/width",
                 schemaPath: "#/properties/gridSize/properties/width/minimum",
                 keyword: "minimum",
@@ -472,9 +488,9 @@ function validate20(
                 message: "must be >= 1",
               };
               if (vErrors === null) {
-                vErrors = [err21];
+                vErrors = [err22];
               } else {
-                vErrors.push(err21);
+                vErrors.push(err22);
               }
               errors++;
             }
@@ -490,7 +506,7 @@ function validate20(
               isFinite(data5)
             )
           ) {
-            const err22 = {
+            const err23 = {
               instancePath: instancePath + "/gridSize/height",
               schemaPath: "#/properties/gridSize/properties/height/type",
               keyword: "type",
@@ -498,35 +514,20 @@ function validate20(
               message: "must be integer",
             };
             if (vErrors === null) {
-              vErrors = [err22];
+              vErrors = [err23];
             } else {
-              vErrors.push(err22);
+              vErrors.push(err23);
             }
             errors++;
           }
           if (typeof data5 == "number" && isFinite(data5)) {
             if (data5 > 2147483647 || isNaN(data5)) {
-              const err23 = {
+              const err24 = {
                 instancePath: instancePath + "/gridSize/height",
                 schemaPath: "#/properties/gridSize/properties/height/maximum",
                 keyword: "maximum",
                 params: { comparison: "<=", limit: 2147483647 },
                 message: "must be <= 2147483647",
-              };
-              if (vErrors === null) {
-                vErrors = [err23];
-              } else {
-                vErrors.push(err23);
-              }
-              errors++;
-            }
-            if (data5 < 1 || isNaN(data5)) {
-              const err24 = {
-                instancePath: instancePath + "/gridSize/height",
-                schemaPath: "#/properties/gridSize/properties/height/minimum",
-                keyword: "minimum",
-                params: { comparison: ">=", limit: 1 },
-                message: "must be >= 1",
               };
               if (vErrors === null) {
                 vErrors = [err24];
@@ -535,10 +536,25 @@ function validate20(
               }
               errors++;
             }
+            if (data5 < 1 || isNaN(data5)) {
+              const err25 = {
+                instancePath: instancePath + "/gridSize/height",
+                schemaPath: "#/properties/gridSize/properties/height/minimum",
+                keyword: "minimum",
+                params: { comparison: ">=", limit: 1 },
+                message: "must be >= 1",
+              };
+              if (vErrors === null) {
+                vErrors = [err25];
+              } else {
+                vErrors.push(err25);
+              }
+              errors++;
+            }
           }
         }
       } else {
-        const err25 = {
+        const err26 = {
           instancePath: instancePath + "/gridSize",
           schemaPath: "#/properties/gridSize/type",
           keyword: "type",
@@ -546,9 +562,9 @@ function validate20(
           message: "must be object",
         };
         if (vErrors === null) {
-          vErrors = [err25];
+          vErrors = [err26];
         } else {
-          vErrors.push(err25);
+          vErrors.push(err26);
         }
         errors++;
       }
@@ -557,7 +573,7 @@ function validate20(
       let data6 = data.snake;
       if (Array.isArray(data6)) {
         if (data6.length < 1) {
-          const err26 = {
+          const err27 = {
             instancePath: instancePath + "/snake",
             schemaPath: "#/properties/snake/minItems",
             keyword: "minItems",
@@ -565,9 +581,9 @@ function validate20(
             message: "must NOT have fewer than 1 items",
           };
           if (vErrors === null) {
-            vErrors = [err26];
+            vErrors = [err27];
           } else {
-            vErrors.push(err26);
+            vErrors.push(err27);
           }
           errors++;
         }
@@ -576,27 +592,12 @@ function validate20(
           let data7 = data6[i0];
           if (data7 && typeof data7 == "object" && !Array.isArray(data7)) {
             if (data7.x === undefined) {
-              const err27 = {
+              const err28 = {
                 instancePath: instancePath + "/snake/" + i0,
                 schemaPath: "#/$defs/position/required",
                 keyword: "required",
                 params: { missingProperty: "x" },
                 message: "must have required property '" + "x" + "'",
-              };
-              if (vErrors === null) {
-                vErrors = [err27];
-              } else {
-                vErrors.push(err27);
-              }
-              errors++;
-            }
-            if (data7.y === undefined) {
-              const err28 = {
-                instancePath: instancePath + "/snake/" + i0,
-                schemaPath: "#/$defs/position/required",
-                keyword: "required",
-                params: { missingProperty: "y" },
-                message: "must have required property '" + "y" + "'",
               };
               if (vErrors === null) {
                 vErrors = [err28];
@@ -605,9 +606,24 @@ function validate20(
               }
               errors++;
             }
+            if (data7.y === undefined) {
+              const err29 = {
+                instancePath: instancePath + "/snake/" + i0,
+                schemaPath: "#/$defs/position/required",
+                keyword: "required",
+                params: { missingProperty: "y" },
+                message: "must have required property '" + "y" + "'",
+              };
+              if (vErrors === null) {
+                vErrors = [err29];
+              } else {
+                vErrors.push(err29);
+              }
+              errors++;
+            }
             for (const key2 in data7) {
               if (!(key2 === "x" || key2 === "y")) {
-                const err29 = {
+                const err30 = {
                   instancePath: instancePath + "/snake/" + i0,
                   schemaPath: "#/$defs/position/additionalProperties",
                   keyword: "additionalProperties",
@@ -615,9 +631,9 @@ function validate20(
                   message: "must NOT have additional properties",
                 };
                 if (vErrors === null) {
-                  vErrors = [err29];
+                  vErrors = [err30];
                 } else {
-                  vErrors.push(err29);
+                  vErrors.push(err30);
                 }
                 errors++;
               }
@@ -632,7 +648,7 @@ function validate20(
                   isFinite(data8)
                 )
               ) {
-                const err30 = {
+                const err31 = {
                   instancePath: instancePath + "/snake/" + i0 + "/x",
                   schemaPath: "#/$defs/position/properties/x/type",
                   keyword: "type",
@@ -640,15 +656,15 @@ function validate20(
                   message: "must be integer",
                 };
                 if (vErrors === null) {
-                  vErrors = [err30];
+                  vErrors = [err31];
                 } else {
-                  vErrors.push(err30);
+                  vErrors.push(err31);
                 }
                 errors++;
               }
               if (typeof data8 == "number" && isFinite(data8)) {
                 if (data8 > 2147483647 || isNaN(data8)) {
-                  const err31 = {
+                  const err32 = {
                     instancePath: instancePath + "/snake/" + i0 + "/x",
                     schemaPath: "#/$defs/position/properties/x/maximum",
                     keyword: "maximum",
@@ -656,14 +672,14 @@ function validate20(
                     message: "must be <= 2147483647",
                   };
                   if (vErrors === null) {
-                    vErrors = [err31];
+                    vErrors = [err32];
                   } else {
-                    vErrors.push(err31);
+                    vErrors.push(err32);
                   }
                   errors++;
                 }
                 if (data8 < 0 || isNaN(data8)) {
-                  const err32 = {
+                  const err33 = {
                     instancePath: instancePath + "/snake/" + i0 + "/x",
                     schemaPath: "#/$defs/position/properties/x/minimum",
                     keyword: "minimum",
@@ -671,9 +687,9 @@ function validate20(
                     message: "must be >= 0",
                   };
                   if (vErrors === null) {
-                    vErrors = [err32];
+                    vErrors = [err33];
                   } else {
-                    vErrors.push(err32);
+                    vErrors.push(err33);
                   }
                   errors++;
                 }
@@ -689,7 +705,7 @@ function validate20(
                   isFinite(data9)
                 )
               ) {
-                const err33 = {
+                const err34 = {
                   instancePath: instancePath + "/snake/" + i0 + "/y",
                   schemaPath: "#/$defs/position/properties/y/type",
                   keyword: "type",
@@ -697,35 +713,20 @@ function validate20(
                   message: "must be integer",
                 };
                 if (vErrors === null) {
-                  vErrors = [err33];
+                  vErrors = [err34];
                 } else {
-                  vErrors.push(err33);
+                  vErrors.push(err34);
                 }
                 errors++;
               }
               if (typeof data9 == "number" && isFinite(data9)) {
                 if (data9 > 2147483647 || isNaN(data9)) {
-                  const err34 = {
+                  const err35 = {
                     instancePath: instancePath + "/snake/" + i0 + "/y",
                     schemaPath: "#/$defs/position/properties/y/maximum",
                     keyword: "maximum",
                     params: { comparison: "<=", limit: 2147483647 },
                     message: "must be <= 2147483647",
-                  };
-                  if (vErrors === null) {
-                    vErrors = [err34];
-                  } else {
-                    vErrors.push(err34);
-                  }
-                  errors++;
-                }
-                if (data9 < 0 || isNaN(data9)) {
-                  const err35 = {
-                    instancePath: instancePath + "/snake/" + i0 + "/y",
-                    schemaPath: "#/$defs/position/properties/y/minimum",
-                    keyword: "minimum",
-                    params: { comparison: ">=", limit: 0 },
-                    message: "must be >= 0",
                   };
                   if (vErrors === null) {
                     vErrors = [err35];
@@ -734,10 +735,25 @@ function validate20(
                   }
                   errors++;
                 }
+                if (data9 < 0 || isNaN(data9)) {
+                  const err36 = {
+                    instancePath: instancePath + "/snake/" + i0 + "/y",
+                    schemaPath: "#/$defs/position/properties/y/minimum",
+                    keyword: "minimum",
+                    params: { comparison: ">=", limit: 0 },
+                    message: "must be >= 0",
+                  };
+                  if (vErrors === null) {
+                    vErrors = [err36];
+                  } else {
+                    vErrors.push(err36);
+                  }
+                  errors++;
+                }
               }
             }
           } else {
-            const err36 = {
+            const err37 = {
               instancePath: instancePath + "/snake/" + i0,
               schemaPath: "#/$defs/position/type",
               keyword: "type",
@@ -745,15 +761,15 @@ function validate20(
               message: "must be object",
             };
             if (vErrors === null) {
-              vErrors = [err36];
+              vErrors = [err37];
             } else {
-              vErrors.push(err36);
+              vErrors.push(err37);
             }
             errors++;
           }
         }
       } else {
-        const err37 = {
+        const err38 = {
           instancePath: instancePath + "/snake",
           schemaPath: "#/properties/snake/type",
           keyword: "type",
@@ -761,9 +777,9 @@ function validate20(
           message: "must be array",
         };
         if (vErrors === null) {
-          vErrors = [err37];
+          vErrors = [err38];
         } else {
-          vErrors.push(err37);
+          vErrors.push(err38);
         }
         errors++;
       }
@@ -776,27 +792,12 @@ function validate20(
           let data11 = data10[i1];
           if (data11 && typeof data11 == "object" && !Array.isArray(data11)) {
             if (data11.x === undefined) {
-              const err38 = {
+              const err39 = {
                 instancePath: instancePath + "/obstacles/" + i1,
                 schemaPath: "#/$defs/position/required",
                 keyword: "required",
                 params: { missingProperty: "x" },
                 message: "must have required property '" + "x" + "'",
-              };
-              if (vErrors === null) {
-                vErrors = [err38];
-              } else {
-                vErrors.push(err38);
-              }
-              errors++;
-            }
-            if (data11.y === undefined) {
-              const err39 = {
-                instancePath: instancePath + "/obstacles/" + i1,
-                schemaPath: "#/$defs/position/required",
-                keyword: "required",
-                params: { missingProperty: "y" },
-                message: "must have required property '" + "y" + "'",
               };
               if (vErrors === null) {
                 vErrors = [err39];
@@ -805,9 +806,24 @@ function validate20(
               }
               errors++;
             }
+            if (data11.y === undefined) {
+              const err40 = {
+                instancePath: instancePath + "/obstacles/" + i1,
+                schemaPath: "#/$defs/position/required",
+                keyword: "required",
+                params: { missingProperty: "y" },
+                message: "must have required property '" + "y" + "'",
+              };
+              if (vErrors === null) {
+                vErrors = [err40];
+              } else {
+                vErrors.push(err40);
+              }
+              errors++;
+            }
             for (const key3 in data11) {
               if (!(key3 === "x" || key3 === "y")) {
-                const err40 = {
+                const err41 = {
                   instancePath: instancePath + "/obstacles/" + i1,
                   schemaPath: "#/$defs/position/additionalProperties",
                   keyword: "additionalProperties",
@@ -815,9 +831,9 @@ function validate20(
                   message: "must NOT have additional properties",
                 };
                 if (vErrors === null) {
-                  vErrors = [err40];
+                  vErrors = [err41];
                 } else {
-                  vErrors.push(err40);
+                  vErrors.push(err41);
                 }
                 errors++;
               }
@@ -832,7 +848,7 @@ function validate20(
                   isFinite(data12)
                 )
               ) {
-                const err41 = {
+                const err42 = {
                   instancePath: instancePath + "/obstacles/" + i1 + "/x",
                   schemaPath: "#/$defs/position/properties/x/type",
                   keyword: "type",
@@ -840,15 +856,15 @@ function validate20(
                   message: "must be integer",
                 };
                 if (vErrors === null) {
-                  vErrors = [err41];
+                  vErrors = [err42];
                 } else {
-                  vErrors.push(err41);
+                  vErrors.push(err42);
                 }
                 errors++;
               }
               if (typeof data12 == "number" && isFinite(data12)) {
                 if (data12 > 2147483647 || isNaN(data12)) {
-                  const err42 = {
+                  const err43 = {
                     instancePath: instancePath + "/obstacles/" + i1 + "/x",
                     schemaPath: "#/$defs/position/properties/x/maximum",
                     keyword: "maximum",
@@ -856,14 +872,14 @@ function validate20(
                     message: "must be <= 2147483647",
                   };
                   if (vErrors === null) {
-                    vErrors = [err42];
+                    vErrors = [err43];
                   } else {
-                    vErrors.push(err42);
+                    vErrors.push(err43);
                   }
                   errors++;
                 }
                 if (data12 < 0 || isNaN(data12)) {
-                  const err43 = {
+                  const err44 = {
                     instancePath: instancePath + "/obstacles/" + i1 + "/x",
                     schemaPath: "#/$defs/position/properties/x/minimum",
                     keyword: "minimum",
@@ -871,9 +887,9 @@ function validate20(
                     message: "must be >= 0",
                   };
                   if (vErrors === null) {
-                    vErrors = [err43];
+                    vErrors = [err44];
                   } else {
-                    vErrors.push(err43);
+                    vErrors.push(err44);
                   }
                   errors++;
                 }
@@ -889,7 +905,7 @@ function validate20(
                   isFinite(data13)
                 )
               ) {
-                const err44 = {
+                const err45 = {
                   instancePath: instancePath + "/obstacles/" + i1 + "/y",
                   schemaPath: "#/$defs/position/properties/y/type",
                   keyword: "type",
@@ -897,35 +913,20 @@ function validate20(
                   message: "must be integer",
                 };
                 if (vErrors === null) {
-                  vErrors = [err44];
+                  vErrors = [err45];
                 } else {
-                  vErrors.push(err44);
+                  vErrors.push(err45);
                 }
                 errors++;
               }
               if (typeof data13 == "number" && isFinite(data13)) {
                 if (data13 > 2147483647 || isNaN(data13)) {
-                  const err45 = {
+                  const err46 = {
                     instancePath: instancePath + "/obstacles/" + i1 + "/y",
                     schemaPath: "#/$defs/position/properties/y/maximum",
                     keyword: "maximum",
                     params: { comparison: "<=", limit: 2147483647 },
                     message: "must be <= 2147483647",
-                  };
-                  if (vErrors === null) {
-                    vErrors = [err45];
-                  } else {
-                    vErrors.push(err45);
-                  }
-                  errors++;
-                }
-                if (data13 < 0 || isNaN(data13)) {
-                  const err46 = {
-                    instancePath: instancePath + "/obstacles/" + i1 + "/y",
-                    schemaPath: "#/$defs/position/properties/y/minimum",
-                    keyword: "minimum",
-                    params: { comparison: ">=", limit: 0 },
-                    message: "must be >= 0",
                   };
                   if (vErrors === null) {
                     vErrors = [err46];
@@ -934,10 +935,25 @@ function validate20(
                   }
                   errors++;
                 }
+                if (data13 < 0 || isNaN(data13)) {
+                  const err47 = {
+                    instancePath: instancePath + "/obstacles/" + i1 + "/y",
+                    schemaPath: "#/$defs/position/properties/y/minimum",
+                    keyword: "minimum",
+                    params: { comparison: ">=", limit: 0 },
+                    message: "must be >= 0",
+                  };
+                  if (vErrors === null) {
+                    vErrors = [err47];
+                  } else {
+                    vErrors.push(err47);
+                  }
+                  errors++;
+                }
               }
             }
           } else {
-            const err47 = {
+            const err48 = {
               instancePath: instancePath + "/obstacles/" + i1,
               schemaPath: "#/$defs/position/type",
               keyword: "type",
@@ -945,15 +961,15 @@ function validate20(
               message: "must be object",
             };
             if (vErrors === null) {
-              vErrors = [err47];
+              vErrors = [err48];
             } else {
-              vErrors.push(err47);
+              vErrors.push(err48);
             }
             errors++;
           }
         }
       } else {
-        const err48 = {
+        const err49 = {
           instancePath: instancePath + "/obstacles",
           schemaPath: "#/properties/obstacles/type",
           keyword: "type",
@@ -961,9 +977,9 @@ function validate20(
           message: "must be array",
         };
         if (vErrors === null) {
-          vErrors = [err48];
+          vErrors = [err49];
         } else {
-          vErrors.push(err48);
+          vErrors.push(err49);
         }
         errors++;
       }
@@ -976,27 +992,12 @@ function validate20(
           let data15 = data14[i2];
           if (data15 && typeof data15 == "object" && !Array.isArray(data15)) {
             if (data15.x === undefined) {
-              const err49 = {
+              const err50 = {
                 instancePath: instancePath + "/food/" + i2,
                 schemaPath: "#/$defs/position/required",
                 keyword: "required",
                 params: { missingProperty: "x" },
                 message: "must have required property '" + "x" + "'",
-              };
-              if (vErrors === null) {
-                vErrors = [err49];
-              } else {
-                vErrors.push(err49);
-              }
-              errors++;
-            }
-            if (data15.y === undefined) {
-              const err50 = {
-                instancePath: instancePath + "/food/" + i2,
-                schemaPath: "#/$defs/position/required",
-                keyword: "required",
-                params: { missingProperty: "y" },
-                message: "must have required property '" + "y" + "'",
               };
               if (vErrors === null) {
                 vErrors = [err50];
@@ -1005,9 +1006,24 @@ function validate20(
               }
               errors++;
             }
+            if (data15.y === undefined) {
+              const err51 = {
+                instancePath: instancePath + "/food/" + i2,
+                schemaPath: "#/$defs/position/required",
+                keyword: "required",
+                params: { missingProperty: "y" },
+                message: "must have required property '" + "y" + "'",
+              };
+              if (vErrors === null) {
+                vErrors = [err51];
+              } else {
+                vErrors.push(err51);
+              }
+              errors++;
+            }
             for (const key4 in data15) {
               if (!(key4 === "x" || key4 === "y")) {
-                const err51 = {
+                const err52 = {
                   instancePath: instancePath + "/food/" + i2,
                   schemaPath: "#/$defs/position/additionalProperties",
                   keyword: "additionalProperties",
@@ -1015,9 +1031,9 @@ function validate20(
                   message: "must NOT have additional properties",
                 };
                 if (vErrors === null) {
-                  vErrors = [err51];
+                  vErrors = [err52];
                 } else {
-                  vErrors.push(err51);
+                  vErrors.push(err52);
                 }
                 errors++;
               }
@@ -1032,7 +1048,7 @@ function validate20(
                   isFinite(data16)
                 )
               ) {
-                const err52 = {
+                const err53 = {
                   instancePath: instancePath + "/food/" + i2 + "/x",
                   schemaPath: "#/$defs/position/properties/x/type",
                   keyword: "type",
@@ -1040,15 +1056,15 @@ function validate20(
                   message: "must be integer",
                 };
                 if (vErrors === null) {
-                  vErrors = [err52];
+                  vErrors = [err53];
                 } else {
-                  vErrors.push(err52);
+                  vErrors.push(err53);
                 }
                 errors++;
               }
               if (typeof data16 == "number" && isFinite(data16)) {
                 if (data16 > 2147483647 || isNaN(data16)) {
-                  const err53 = {
+                  const err54 = {
                     instancePath: instancePath + "/food/" + i2 + "/x",
                     schemaPath: "#/$defs/position/properties/x/maximum",
                     keyword: "maximum",
@@ -1056,14 +1072,14 @@ function validate20(
                     message: "must be <= 2147483647",
                   };
                   if (vErrors === null) {
-                    vErrors = [err53];
+                    vErrors = [err54];
                   } else {
-                    vErrors.push(err53);
+                    vErrors.push(err54);
                   }
                   errors++;
                 }
                 if (data16 < 0 || isNaN(data16)) {
-                  const err54 = {
+                  const err55 = {
                     instancePath: instancePath + "/food/" + i2 + "/x",
                     schemaPath: "#/$defs/position/properties/x/minimum",
                     keyword: "minimum",
@@ -1071,9 +1087,9 @@ function validate20(
                     message: "must be >= 0",
                   };
                   if (vErrors === null) {
-                    vErrors = [err54];
+                    vErrors = [err55];
                   } else {
-                    vErrors.push(err54);
+                    vErrors.push(err55);
                   }
                   errors++;
                 }
@@ -1089,7 +1105,7 @@ function validate20(
                   isFinite(data17)
                 )
               ) {
-                const err55 = {
+                const err56 = {
                   instancePath: instancePath + "/food/" + i2 + "/y",
                   schemaPath: "#/$defs/position/properties/y/type",
                   keyword: "type",
@@ -1097,35 +1113,20 @@ function validate20(
                   message: "must be integer",
                 };
                 if (vErrors === null) {
-                  vErrors = [err55];
+                  vErrors = [err56];
                 } else {
-                  vErrors.push(err55);
+                  vErrors.push(err56);
                 }
                 errors++;
               }
               if (typeof data17 == "number" && isFinite(data17)) {
                 if (data17 > 2147483647 || isNaN(data17)) {
-                  const err56 = {
+                  const err57 = {
                     instancePath: instancePath + "/food/" + i2 + "/y",
                     schemaPath: "#/$defs/position/properties/y/maximum",
                     keyword: "maximum",
                     params: { comparison: "<=", limit: 2147483647 },
                     message: "must be <= 2147483647",
-                  };
-                  if (vErrors === null) {
-                    vErrors = [err56];
-                  } else {
-                    vErrors.push(err56);
-                  }
-                  errors++;
-                }
-                if (data17 < 0 || isNaN(data17)) {
-                  const err57 = {
-                    instancePath: instancePath + "/food/" + i2 + "/y",
-                    schemaPath: "#/$defs/position/properties/y/minimum",
-                    keyword: "minimum",
-                    params: { comparison: ">=", limit: 0 },
-                    message: "must be >= 0",
                   };
                   if (vErrors === null) {
                     vErrors = [err57];
@@ -1134,10 +1135,25 @@ function validate20(
                   }
                   errors++;
                 }
+                if (data17 < 0 || isNaN(data17)) {
+                  const err58 = {
+                    instancePath: instancePath + "/food/" + i2 + "/y",
+                    schemaPath: "#/$defs/position/properties/y/minimum",
+                    keyword: "minimum",
+                    params: { comparison: ">=", limit: 0 },
+                    message: "must be >= 0",
+                  };
+                  if (vErrors === null) {
+                    vErrors = [err58];
+                  } else {
+                    vErrors.push(err58);
+                  }
+                  errors++;
+                }
               }
             }
           } else {
-            const err58 = {
+            const err59 = {
               instancePath: instancePath + "/food/" + i2,
               schemaPath: "#/$defs/position/type",
               keyword: "type",
@@ -1145,15 +1161,15 @@ function validate20(
               message: "must be object",
             };
             if (vErrors === null) {
-              vErrors = [err58];
+              vErrors = [err59];
             } else {
-              vErrors.push(err58);
+              vErrors.push(err59);
             }
             errors++;
           }
         }
       } else {
-        const err59 = {
+        const err60 = {
           instancePath: instancePath + "/food",
           schemaPath: "#/properties/food/type",
           keyword: "type",
@@ -1161,9 +1177,9 @@ function validate20(
           message: "must be array",
         };
         if (vErrors === null) {
-          vErrors = [err59];
+          vErrors = [err60];
         } else {
-          vErrors.push(err59);
+          vErrors.push(err60);
         }
         errors++;
       }
@@ -1172,27 +1188,12 @@ function validate20(
       let data18 = data.exit;
       if (data18 && typeof data18 == "object" && !Array.isArray(data18)) {
         if (data18.x === undefined) {
-          const err60 = {
+          const err61 = {
             instancePath: instancePath + "/exit",
             schemaPath: "#/$defs/position/required",
             keyword: "required",
             params: { missingProperty: "x" },
             message: "must have required property '" + "x" + "'",
-          };
-          if (vErrors === null) {
-            vErrors = [err60];
-          } else {
-            vErrors.push(err60);
-          }
-          errors++;
-        }
-        if (data18.y === undefined) {
-          const err61 = {
-            instancePath: instancePath + "/exit",
-            schemaPath: "#/$defs/position/required",
-            keyword: "required",
-            params: { missingProperty: "y" },
-            message: "must have required property '" + "y" + "'",
           };
           if (vErrors === null) {
             vErrors = [err61];
@@ -1201,9 +1202,24 @@ function validate20(
           }
           errors++;
         }
+        if (data18.y === undefined) {
+          const err62 = {
+            instancePath: instancePath + "/exit",
+            schemaPath: "#/$defs/position/required",
+            keyword: "required",
+            params: { missingProperty: "y" },
+            message: "must have required property '" + "y" + "'",
+          };
+          if (vErrors === null) {
+            vErrors = [err62];
+          } else {
+            vErrors.push(err62);
+          }
+          errors++;
+        }
         for (const key5 in data18) {
           if (!(key5 === "x" || key5 === "y")) {
-            const err62 = {
+            const err63 = {
               instancePath: instancePath + "/exit",
               schemaPath: "#/$defs/position/additionalProperties",
               keyword: "additionalProperties",
@@ -1211,9 +1227,9 @@ function validate20(
               message: "must NOT have additional properties",
             };
             if (vErrors === null) {
-              vErrors = [err62];
+              vErrors = [err63];
             } else {
-              vErrors.push(err62);
+              vErrors.push(err63);
             }
             errors++;
           }
@@ -1228,7 +1244,7 @@ function validate20(
               isFinite(data19)
             )
           ) {
-            const err63 = {
+            const err64 = {
               instancePath: instancePath + "/exit/x",
               schemaPath: "#/$defs/position/properties/x/type",
               keyword: "type",
@@ -1236,15 +1252,15 @@ function validate20(
               message: "must be integer",
             };
             if (vErrors === null) {
-              vErrors = [err63];
+              vErrors = [err64];
             } else {
-              vErrors.push(err63);
+              vErrors.push(err64);
             }
             errors++;
           }
           if (typeof data19 == "number" && isFinite(data19)) {
             if (data19 > 2147483647 || isNaN(data19)) {
-              const err64 = {
+              const err65 = {
                 instancePath: instancePath + "/exit/x",
                 schemaPath: "#/$defs/position/properties/x/maximum",
                 keyword: "maximum",
@@ -1252,14 +1268,14 @@ function validate20(
                 message: "must be <= 2147483647",
               };
               if (vErrors === null) {
-                vErrors = [err64];
+                vErrors = [err65];
               } else {
-                vErrors.push(err64);
+                vErrors.push(err65);
               }
               errors++;
             }
             if (data19 < 0 || isNaN(data19)) {
-              const err65 = {
+              const err66 = {
                 instancePath: instancePath + "/exit/x",
                 schemaPath: "#/$defs/position/properties/x/minimum",
                 keyword: "minimum",
@@ -1267,9 +1283,9 @@ function validate20(
                 message: "must be >= 0",
               };
               if (vErrors === null) {
-                vErrors = [err65];
+                vErrors = [err66];
               } else {
-                vErrors.push(err65);
+                vErrors.push(err66);
               }
               errors++;
             }
@@ -1285,7 +1301,7 @@ function validate20(
               isFinite(data20)
             )
           ) {
-            const err66 = {
+            const err67 = {
               instancePath: instancePath + "/exit/y",
               schemaPath: "#/$defs/position/properties/y/type",
               keyword: "type",
@@ -1293,35 +1309,20 @@ function validate20(
               message: "must be integer",
             };
             if (vErrors === null) {
-              vErrors = [err66];
+              vErrors = [err67];
             } else {
-              vErrors.push(err66);
+              vErrors.push(err67);
             }
             errors++;
           }
           if (typeof data20 == "number" && isFinite(data20)) {
             if (data20 > 2147483647 || isNaN(data20)) {
-              const err67 = {
+              const err68 = {
                 instancePath: instancePath + "/exit/y",
                 schemaPath: "#/$defs/position/properties/y/maximum",
                 keyword: "maximum",
                 params: { comparison: "<=", limit: 2147483647 },
                 message: "must be <= 2147483647",
-              };
-              if (vErrors === null) {
-                vErrors = [err67];
-              } else {
-                vErrors.push(err67);
-              }
-              errors++;
-            }
-            if (data20 < 0 || isNaN(data20)) {
-              const err68 = {
-                instancePath: instancePath + "/exit/y",
-                schemaPath: "#/$defs/position/properties/y/minimum",
-                keyword: "minimum",
-                params: { comparison: ">=", limit: 0 },
-                message: "must be >= 0",
               };
               if (vErrors === null) {
                 vErrors = [err68];
@@ -1330,10 +1331,25 @@ function validate20(
               }
               errors++;
             }
+            if (data20 < 0 || isNaN(data20)) {
+              const err69 = {
+                instancePath: instancePath + "/exit/y",
+                schemaPath: "#/$defs/position/properties/y/minimum",
+                keyword: "minimum",
+                params: { comparison: ">=", limit: 0 },
+                message: "must be >= 0",
+              };
+              if (vErrors === null) {
+                vErrors = [err69];
+              } else {
+                vErrors.push(err69);
+              }
+              errors++;
+            }
           }
         }
       } else {
-        const err69 = {
+        const err70 = {
           instancePath: instancePath + "/exit",
           schemaPath: "#/$defs/position/type",
           keyword: "type",
@@ -1341,9 +1357,9 @@ function validate20(
           message: "must be object",
         };
         if (vErrors === null) {
-          vErrors = [err69];
+          vErrors = [err70];
         } else {
-          vErrors.push(err69);
+          vErrors.push(err70);
         }
         errors++;
       }
@@ -1351,7 +1367,7 @@ function validate20(
     if (data.snakeDirection !== undefined) {
       let data21 = data.snakeDirection;
       if (typeof data21 !== "string") {
-        const err70 = {
+        const err71 = {
           instancePath: instancePath + "/snakeDirection",
           schemaPath: "#/$defs/direction/type",
           keyword: "type",
@@ -1359,9 +1375,9 @@ function validate20(
           message: "must be string",
         };
         if (vErrors === null) {
-          vErrors = [err70];
+          vErrors = [err71];
         } else {
-          vErrors.push(err70);
+          vErrors.push(err71);
         }
         errors++;
       }
@@ -1373,7 +1389,7 @@ function validate20(
           data21 === "West"
         )
       ) {
-        const err71 = {
+        const err72 = {
           instancePath: instancePath + "/snakeDirection",
           schemaPath: "#/$defs/direction/enum",
           keyword: "enum",
@@ -1381,9 +1397,9 @@ function validate20(
           message: "must be equal to one of the allowed values",
         };
         if (vErrors === null) {
-          vErrors = [err71];
+          vErrors = [err72];
         } else {
-          vErrors.push(err71);
+          vErrors.push(err72);
         }
         errors++;
       }
@@ -1396,27 +1412,12 @@ function validate20(
           let data23 = data22[i3];
           if (data23 && typeof data23 == "object" && !Array.isArray(data23)) {
             if (data23.x === undefined) {
-              const err72 = {
+              const err73 = {
                 instancePath: instancePath + "/floatingFood/" + i3,
                 schemaPath: "#/$defs/position/required",
                 keyword: "required",
                 params: { missingProperty: "x" },
                 message: "must have required property '" + "x" + "'",
-              };
-              if (vErrors === null) {
-                vErrors = [err72];
-              } else {
-                vErrors.push(err72);
-              }
-              errors++;
-            }
-            if (data23.y === undefined) {
-              const err73 = {
-                instancePath: instancePath + "/floatingFood/" + i3,
-                schemaPath: "#/$defs/position/required",
-                keyword: "required",
-                params: { missingProperty: "y" },
-                message: "must have required property '" + "y" + "'",
               };
               if (vErrors === null) {
                 vErrors = [err73];
@@ -1425,9 +1426,24 @@ function validate20(
               }
               errors++;
             }
+            if (data23.y === undefined) {
+              const err74 = {
+                instancePath: instancePath + "/floatingFood/" + i3,
+                schemaPath: "#/$defs/position/required",
+                keyword: "required",
+                params: { missingProperty: "y" },
+                message: "must have required property '" + "y" + "'",
+              };
+              if (vErrors === null) {
+                vErrors = [err74];
+              } else {
+                vErrors.push(err74);
+              }
+              errors++;
+            }
             for (const key6 in data23) {
               if (!(key6 === "x" || key6 === "y")) {
-                const err74 = {
+                const err75 = {
                   instancePath: instancePath + "/floatingFood/" + i3,
                   schemaPath: "#/$defs/position/additionalProperties",
                   keyword: "additionalProperties",
@@ -1435,9 +1451,9 @@ function validate20(
                   message: "must NOT have additional properties",
                 };
                 if (vErrors === null) {
-                  vErrors = [err74];
+                  vErrors = [err75];
                 } else {
-                  vErrors.push(err74);
+                  vErrors.push(err75);
                 }
                 errors++;
               }
@@ -1452,7 +1468,7 @@ function validate20(
                   isFinite(data24)
                 )
               ) {
-                const err75 = {
+                const err76 = {
                   instancePath: instancePath + "/floatingFood/" + i3 + "/x",
                   schemaPath: "#/$defs/position/properties/x/type",
                   keyword: "type",
@@ -1460,15 +1476,15 @@ function validate20(
                   message: "must be integer",
                 };
                 if (vErrors === null) {
-                  vErrors = [err75];
+                  vErrors = [err76];
                 } else {
-                  vErrors.push(err75);
+                  vErrors.push(err76);
                 }
                 errors++;
               }
               if (typeof data24 == "number" && isFinite(data24)) {
                 if (data24 > 2147483647 || isNaN(data24)) {
-                  const err76 = {
+                  const err77 = {
                     instancePath: instancePath + "/floatingFood/" + i3 + "/x",
                     schemaPath: "#/$defs/position/properties/x/maximum",
                     keyword: "maximum",
@@ -1476,14 +1492,14 @@ function validate20(
                     message: "must be <= 2147483647",
                   };
                   if (vErrors === null) {
-                    vErrors = [err76];
+                    vErrors = [err77];
                   } else {
-                    vErrors.push(err76);
+                    vErrors.push(err77);
                   }
                   errors++;
                 }
                 if (data24 < 0 || isNaN(data24)) {
-                  const err77 = {
+                  const err78 = {
                     instancePath: instancePath + "/floatingFood/" + i3 + "/x",
                     schemaPath: "#/$defs/position/properties/x/minimum",
                     keyword: "minimum",
@@ -1491,9 +1507,9 @@ function validate20(
                     message: "must be >= 0",
                   };
                   if (vErrors === null) {
-                    vErrors = [err77];
+                    vErrors = [err78];
                   } else {
-                    vErrors.push(err77);
+                    vErrors.push(err78);
                   }
                   errors++;
                 }
@@ -1509,7 +1525,7 @@ function validate20(
                   isFinite(data25)
                 )
               ) {
-                const err78 = {
+                const err79 = {
                   instancePath: instancePath + "/floatingFood/" + i3 + "/y",
                   schemaPath: "#/$defs/position/properties/y/type",
                   keyword: "type",
@@ -1517,35 +1533,20 @@ function validate20(
                   message: "must be integer",
                 };
                 if (vErrors === null) {
-                  vErrors = [err78];
+                  vErrors = [err79];
                 } else {
-                  vErrors.push(err78);
+                  vErrors.push(err79);
                 }
                 errors++;
               }
               if (typeof data25 == "number" && isFinite(data25)) {
                 if (data25 > 2147483647 || isNaN(data25)) {
-                  const err79 = {
+                  const err80 = {
                     instancePath: instancePath + "/floatingFood/" + i3 + "/y",
                     schemaPath: "#/$defs/position/properties/y/maximum",
                     keyword: "maximum",
                     params: { comparison: "<=", limit: 2147483647 },
                     message: "must be <= 2147483647",
-                  };
-                  if (vErrors === null) {
-                    vErrors = [err79];
-                  } else {
-                    vErrors.push(err79);
-                  }
-                  errors++;
-                }
-                if (data25 < 0 || isNaN(data25)) {
-                  const err80 = {
-                    instancePath: instancePath + "/floatingFood/" + i3 + "/y",
-                    schemaPath: "#/$defs/position/properties/y/minimum",
-                    keyword: "minimum",
-                    params: { comparison: ">=", limit: 0 },
-                    message: "must be >= 0",
                   };
                   if (vErrors === null) {
                     vErrors = [err80];
@@ -1554,10 +1555,25 @@ function validate20(
                   }
                   errors++;
                 }
+                if (data25 < 0 || isNaN(data25)) {
+                  const err81 = {
+                    instancePath: instancePath + "/floatingFood/" + i3 + "/y",
+                    schemaPath: "#/$defs/position/properties/y/minimum",
+                    keyword: "minimum",
+                    params: { comparison: ">=", limit: 0 },
+                    message: "must be >= 0",
+                  };
+                  if (vErrors === null) {
+                    vErrors = [err81];
+                  } else {
+                    vErrors.push(err81);
+                  }
+                  errors++;
+                }
               }
             }
           } else {
-            const err81 = {
+            const err82 = {
               instancePath: instancePath + "/floatingFood/" + i3,
               schemaPath: "#/$defs/position/type",
               keyword: "type",
@@ -1565,15 +1581,15 @@ function validate20(
               message: "must be object",
             };
             if (vErrors === null) {
-              vErrors = [err81];
+              vErrors = [err82];
             } else {
-              vErrors.push(err81);
+              vErrors.push(err82);
             }
             errors++;
           }
         }
       } else {
-        const err82 = {
+        const err83 = {
           instancePath: instancePath + "/floatingFood",
           schemaPath: "#/properties/floatingFood/type",
           keyword: "type",
@@ -1581,9 +1597,9 @@ function validate20(
           message: "must be array",
         };
         if (vErrors === null) {
-          vErrors = [err82];
+          vErrors = [err83];
         } else {
-          vErrors.push(err82);
+          vErrors.push(err83);
         }
         errors++;
       }
@@ -1596,27 +1612,12 @@ function validate20(
           let data27 = data26[i4];
           if (data27 && typeof data27 == "object" && !Array.isArray(data27)) {
             if (data27.x === undefined) {
-              const err83 = {
+              const err84 = {
                 instancePath: instancePath + "/fallingFood/" + i4,
                 schemaPath: "#/$defs/position/required",
                 keyword: "required",
                 params: { missingProperty: "x" },
                 message: "must have required property '" + "x" + "'",
-              };
-              if (vErrors === null) {
-                vErrors = [err83];
-              } else {
-                vErrors.push(err83);
-              }
-              errors++;
-            }
-            if (data27.y === undefined) {
-              const err84 = {
-                instancePath: instancePath + "/fallingFood/" + i4,
-                schemaPath: "#/$defs/position/required",
-                keyword: "required",
-                params: { missingProperty: "y" },
-                message: "must have required property '" + "y" + "'",
               };
               if (vErrors === null) {
                 vErrors = [err84];
@@ -1625,9 +1626,24 @@ function validate20(
               }
               errors++;
             }
+            if (data27.y === undefined) {
+              const err85 = {
+                instancePath: instancePath + "/fallingFood/" + i4,
+                schemaPath: "#/$defs/position/required",
+                keyword: "required",
+                params: { missingProperty: "y" },
+                message: "must have required property '" + "y" + "'",
+              };
+              if (vErrors === null) {
+                vErrors = [err85];
+              } else {
+                vErrors.push(err85);
+              }
+              errors++;
+            }
             for (const key7 in data27) {
               if (!(key7 === "x" || key7 === "y")) {
-                const err85 = {
+                const err86 = {
                   instancePath: instancePath + "/fallingFood/" + i4,
                   schemaPath: "#/$defs/position/additionalProperties",
                   keyword: "additionalProperties",
@@ -1635,9 +1651,9 @@ function validate20(
                   message: "must NOT have additional properties",
                 };
                 if (vErrors === null) {
-                  vErrors = [err85];
+                  vErrors = [err86];
                 } else {
-                  vErrors.push(err85);
+                  vErrors.push(err86);
                 }
                 errors++;
               }
@@ -1652,7 +1668,7 @@ function validate20(
                   isFinite(data28)
                 )
               ) {
-                const err86 = {
+                const err87 = {
                   instancePath: instancePath + "/fallingFood/" + i4 + "/x",
                   schemaPath: "#/$defs/position/properties/x/type",
                   keyword: "type",
@@ -1660,15 +1676,15 @@ function validate20(
                   message: "must be integer",
                 };
                 if (vErrors === null) {
-                  vErrors = [err86];
+                  vErrors = [err87];
                 } else {
-                  vErrors.push(err86);
+                  vErrors.push(err87);
                 }
                 errors++;
               }
               if (typeof data28 == "number" && isFinite(data28)) {
                 if (data28 > 2147483647 || isNaN(data28)) {
-                  const err87 = {
+                  const err88 = {
                     instancePath: instancePath + "/fallingFood/" + i4 + "/x",
                     schemaPath: "#/$defs/position/properties/x/maximum",
                     keyword: "maximum",
@@ -1676,14 +1692,14 @@ function validate20(
                     message: "must be <= 2147483647",
                   };
                   if (vErrors === null) {
-                    vErrors = [err87];
+                    vErrors = [err88];
                   } else {
-                    vErrors.push(err87);
+                    vErrors.push(err88);
                   }
                   errors++;
                 }
                 if (data28 < 0 || isNaN(data28)) {
-                  const err88 = {
+                  const err89 = {
                     instancePath: instancePath + "/fallingFood/" + i4 + "/x",
                     schemaPath: "#/$defs/position/properties/x/minimum",
                     keyword: "minimum",
@@ -1691,9 +1707,9 @@ function validate20(
                     message: "must be >= 0",
                   };
                   if (vErrors === null) {
-                    vErrors = [err88];
+                    vErrors = [err89];
                   } else {
-                    vErrors.push(err88);
+                    vErrors.push(err89);
                   }
                   errors++;
                 }
@@ -1709,7 +1725,7 @@ function validate20(
                   isFinite(data29)
                 )
               ) {
-                const err89 = {
+                const err90 = {
                   instancePath: instancePath + "/fallingFood/" + i4 + "/y",
                   schemaPath: "#/$defs/position/properties/y/type",
                   keyword: "type",
@@ -1717,35 +1733,20 @@ function validate20(
                   message: "must be integer",
                 };
                 if (vErrors === null) {
-                  vErrors = [err89];
+                  vErrors = [err90];
                 } else {
-                  vErrors.push(err89);
+                  vErrors.push(err90);
                 }
                 errors++;
               }
               if (typeof data29 == "number" && isFinite(data29)) {
                 if (data29 > 2147483647 || isNaN(data29)) {
-                  const err90 = {
+                  const err91 = {
                     instancePath: instancePath + "/fallingFood/" + i4 + "/y",
                     schemaPath: "#/$defs/position/properties/y/maximum",
                     keyword: "maximum",
                     params: { comparison: "<=", limit: 2147483647 },
                     message: "must be <= 2147483647",
-                  };
-                  if (vErrors === null) {
-                    vErrors = [err90];
-                  } else {
-                    vErrors.push(err90);
-                  }
-                  errors++;
-                }
-                if (data29 < 0 || isNaN(data29)) {
-                  const err91 = {
-                    instancePath: instancePath + "/fallingFood/" + i4 + "/y",
-                    schemaPath: "#/$defs/position/properties/y/minimum",
-                    keyword: "minimum",
-                    params: { comparison: ">=", limit: 0 },
-                    message: "must be >= 0",
                   };
                   if (vErrors === null) {
                     vErrors = [err91];
@@ -1754,10 +1755,25 @@ function validate20(
                   }
                   errors++;
                 }
+                if (data29 < 0 || isNaN(data29)) {
+                  const err92 = {
+                    instancePath: instancePath + "/fallingFood/" + i4 + "/y",
+                    schemaPath: "#/$defs/position/properties/y/minimum",
+                    keyword: "minimum",
+                    params: { comparison: ">=", limit: 0 },
+                    message: "must be >= 0",
+                  };
+                  if (vErrors === null) {
+                    vErrors = [err92];
+                  } else {
+                    vErrors.push(err92);
+                  }
+                  errors++;
+                }
               }
             }
           } else {
-            const err92 = {
+            const err93 = {
               instancePath: instancePath + "/fallingFood/" + i4,
               schemaPath: "#/$defs/position/type",
               keyword: "type",
@@ -1765,15 +1781,15 @@ function validate20(
               message: "must be object",
             };
             if (vErrors === null) {
-              vErrors = [err92];
+              vErrors = [err93];
             } else {
-              vErrors.push(err92);
+              vErrors.push(err93);
             }
             errors++;
           }
         }
       } else {
-        const err93 = {
+        const err94 = {
           instancePath: instancePath + "/fallingFood",
           schemaPath: "#/properties/fallingFood/type",
           keyword: "type",
@@ -1781,9 +1797,9 @@ function validate20(
           message: "must be array",
         };
         if (vErrors === null) {
-          vErrors = [err93];
+          vErrors = [err94];
         } else {
-          vErrors.push(err93);
+          vErrors.push(err94);
         }
         errors++;
       }
@@ -1796,27 +1812,12 @@ function validate20(
           let data31 = data30[i5];
           if (data31 && typeof data31 == "object" && !Array.isArray(data31)) {
             if (data31.x === undefined) {
-              const err94 = {
+              const err95 = {
                 instancePath: instancePath + "/stones/" + i5,
                 schemaPath: "#/$defs/position/required",
                 keyword: "required",
                 params: { missingProperty: "x" },
                 message: "must have required property '" + "x" + "'",
-              };
-              if (vErrors === null) {
-                vErrors = [err94];
-              } else {
-                vErrors.push(err94);
-              }
-              errors++;
-            }
-            if (data31.y === undefined) {
-              const err95 = {
-                instancePath: instancePath + "/stones/" + i5,
-                schemaPath: "#/$defs/position/required",
-                keyword: "required",
-                params: { missingProperty: "y" },
-                message: "must have required property '" + "y" + "'",
               };
               if (vErrors === null) {
                 vErrors = [err95];
@@ -1825,9 +1826,24 @@ function validate20(
               }
               errors++;
             }
+            if (data31.y === undefined) {
+              const err96 = {
+                instancePath: instancePath + "/stones/" + i5,
+                schemaPath: "#/$defs/position/required",
+                keyword: "required",
+                params: { missingProperty: "y" },
+                message: "must have required property '" + "y" + "'",
+              };
+              if (vErrors === null) {
+                vErrors = [err96];
+              } else {
+                vErrors.push(err96);
+              }
+              errors++;
+            }
             for (const key8 in data31) {
               if (!(key8 === "x" || key8 === "y")) {
-                const err96 = {
+                const err97 = {
                   instancePath: instancePath + "/stones/" + i5,
                   schemaPath: "#/$defs/position/additionalProperties",
                   keyword: "additionalProperties",
@@ -1835,9 +1851,9 @@ function validate20(
                   message: "must NOT have additional properties",
                 };
                 if (vErrors === null) {
-                  vErrors = [err96];
+                  vErrors = [err97];
                 } else {
-                  vErrors.push(err96);
+                  vErrors.push(err97);
                 }
                 errors++;
               }
@@ -1852,7 +1868,7 @@ function validate20(
                   isFinite(data32)
                 )
               ) {
-                const err97 = {
+                const err98 = {
                   instancePath: instancePath + "/stones/" + i5 + "/x",
                   schemaPath: "#/$defs/position/properties/x/type",
                   keyword: "type",
@@ -1860,15 +1876,15 @@ function validate20(
                   message: "must be integer",
                 };
                 if (vErrors === null) {
-                  vErrors = [err97];
+                  vErrors = [err98];
                 } else {
-                  vErrors.push(err97);
+                  vErrors.push(err98);
                 }
                 errors++;
               }
               if (typeof data32 == "number" && isFinite(data32)) {
                 if (data32 > 2147483647 || isNaN(data32)) {
-                  const err98 = {
+                  const err99 = {
                     instancePath: instancePath + "/stones/" + i5 + "/x",
                     schemaPath: "#/$defs/position/properties/x/maximum",
                     keyword: "maximum",
@@ -1876,14 +1892,14 @@ function validate20(
                     message: "must be <= 2147483647",
                   };
                   if (vErrors === null) {
-                    vErrors = [err98];
+                    vErrors = [err99];
                   } else {
-                    vErrors.push(err98);
+                    vErrors.push(err99);
                   }
                   errors++;
                 }
                 if (data32 < 0 || isNaN(data32)) {
-                  const err99 = {
+                  const err100 = {
                     instancePath: instancePath + "/stones/" + i5 + "/x",
                     schemaPath: "#/$defs/position/properties/x/minimum",
                     keyword: "minimum",
@@ -1891,9 +1907,9 @@ function validate20(
                     message: "must be >= 0",
                   };
                   if (vErrors === null) {
-                    vErrors = [err99];
+                    vErrors = [err100];
                   } else {
-                    vErrors.push(err99);
+                    vErrors.push(err100);
                   }
                   errors++;
                 }
@@ -1909,7 +1925,7 @@ function validate20(
                   isFinite(data33)
                 )
               ) {
-                const err100 = {
+                const err101 = {
                   instancePath: instancePath + "/stones/" + i5 + "/y",
                   schemaPath: "#/$defs/position/properties/y/type",
                   keyword: "type",
@@ -1917,35 +1933,20 @@ function validate20(
                   message: "must be integer",
                 };
                 if (vErrors === null) {
-                  vErrors = [err100];
+                  vErrors = [err101];
                 } else {
-                  vErrors.push(err100);
+                  vErrors.push(err101);
                 }
                 errors++;
               }
               if (typeof data33 == "number" && isFinite(data33)) {
                 if (data33 > 2147483647 || isNaN(data33)) {
-                  const err101 = {
+                  const err102 = {
                     instancePath: instancePath + "/stones/" + i5 + "/y",
                     schemaPath: "#/$defs/position/properties/y/maximum",
                     keyword: "maximum",
                     params: { comparison: "<=", limit: 2147483647 },
                     message: "must be <= 2147483647",
-                  };
-                  if (vErrors === null) {
-                    vErrors = [err101];
-                  } else {
-                    vErrors.push(err101);
-                  }
-                  errors++;
-                }
-                if (data33 < 0 || isNaN(data33)) {
-                  const err102 = {
-                    instancePath: instancePath + "/stones/" + i5 + "/y",
-                    schemaPath: "#/$defs/position/properties/y/minimum",
-                    keyword: "minimum",
-                    params: { comparison: ">=", limit: 0 },
-                    message: "must be >= 0",
                   };
                   if (vErrors === null) {
                     vErrors = [err102];
@@ -1954,10 +1955,25 @@ function validate20(
                   }
                   errors++;
                 }
+                if (data33 < 0 || isNaN(data33)) {
+                  const err103 = {
+                    instancePath: instancePath + "/stones/" + i5 + "/y",
+                    schemaPath: "#/$defs/position/properties/y/minimum",
+                    keyword: "minimum",
+                    params: { comparison: ">=", limit: 0 },
+                    message: "must be >= 0",
+                  };
+                  if (vErrors === null) {
+                    vErrors = [err103];
+                  } else {
+                    vErrors.push(err103);
+                  }
+                  errors++;
+                }
               }
             }
           } else {
-            const err103 = {
+            const err104 = {
               instancePath: instancePath + "/stones/" + i5,
               schemaPath: "#/$defs/position/type",
               keyword: "type",
@@ -1965,15 +1981,15 @@ function validate20(
               message: "must be object",
             };
             if (vErrors === null) {
-              vErrors = [err103];
+              vErrors = [err104];
             } else {
-              vErrors.push(err103);
+              vErrors.push(err104);
             }
             errors++;
           }
         }
       } else {
-        const err104 = {
+        const err105 = {
           instancePath: instancePath + "/stones",
           schemaPath: "#/properties/stones/type",
           keyword: "type",
@@ -1981,9 +1997,9 @@ function validate20(
           message: "must be array",
         };
         if (vErrors === null) {
-          vErrors = [err104];
+          vErrors = [err105];
         } else {
-          vErrors.push(err104);
+          vErrors.push(err105);
         }
         errors++;
       }
@@ -1996,27 +2012,12 @@ function validate20(
           let data35 = data34[i6];
           if (data35 && typeof data35 == "object" && !Array.isArray(data35)) {
             if (data35.x === undefined) {
-              const err105 = {
+              const err106 = {
                 instancePath: instancePath + "/spikes/" + i6,
                 schemaPath: "#/$defs/position/required",
                 keyword: "required",
                 params: { missingProperty: "x" },
                 message: "must have required property '" + "x" + "'",
-              };
-              if (vErrors === null) {
-                vErrors = [err105];
-              } else {
-                vErrors.push(err105);
-              }
-              errors++;
-            }
-            if (data35.y === undefined) {
-              const err106 = {
-                instancePath: instancePath + "/spikes/" + i6,
-                schemaPath: "#/$defs/position/required",
-                keyword: "required",
-                params: { missingProperty: "y" },
-                message: "must have required property '" + "y" + "'",
               };
               if (vErrors === null) {
                 vErrors = [err106];
@@ -2025,9 +2026,24 @@ function validate20(
               }
               errors++;
             }
+            if (data35.y === undefined) {
+              const err107 = {
+                instancePath: instancePath + "/spikes/" + i6,
+                schemaPath: "#/$defs/position/required",
+                keyword: "required",
+                params: { missingProperty: "y" },
+                message: "must have required property '" + "y" + "'",
+              };
+              if (vErrors === null) {
+                vErrors = [err107];
+              } else {
+                vErrors.push(err107);
+              }
+              errors++;
+            }
             for (const key9 in data35) {
               if (!(key9 === "x" || key9 === "y")) {
-                const err107 = {
+                const err108 = {
                   instancePath: instancePath + "/spikes/" + i6,
                   schemaPath: "#/$defs/position/additionalProperties",
                   keyword: "additionalProperties",
@@ -2035,9 +2051,9 @@ function validate20(
                   message: "must NOT have additional properties",
                 };
                 if (vErrors === null) {
-                  vErrors = [err107];
+                  vErrors = [err108];
                 } else {
-                  vErrors.push(err107);
+                  vErrors.push(err108);
                 }
                 errors++;
               }
@@ -2052,7 +2068,7 @@ function validate20(
                   isFinite(data36)
                 )
               ) {
-                const err108 = {
+                const err109 = {
                   instancePath: instancePath + "/spikes/" + i6 + "/x",
                   schemaPath: "#/$defs/position/properties/x/type",
                   keyword: "type",
@@ -2060,15 +2076,15 @@ function validate20(
                   message: "must be integer",
                 };
                 if (vErrors === null) {
-                  vErrors = [err108];
+                  vErrors = [err109];
                 } else {
-                  vErrors.push(err108);
+                  vErrors.push(err109);
                 }
                 errors++;
               }
               if (typeof data36 == "number" && isFinite(data36)) {
                 if (data36 > 2147483647 || isNaN(data36)) {
-                  const err109 = {
+                  const err110 = {
                     instancePath: instancePath + "/spikes/" + i6 + "/x",
                     schemaPath: "#/$defs/position/properties/x/maximum",
                     keyword: "maximum",
@@ -2076,14 +2092,14 @@ function validate20(
                     message: "must be <= 2147483647",
                   };
                   if (vErrors === null) {
-                    vErrors = [err109];
+                    vErrors = [err110];
                   } else {
-                    vErrors.push(err109);
+                    vErrors.push(err110);
                   }
                   errors++;
                 }
                 if (data36 < 0 || isNaN(data36)) {
-                  const err110 = {
+                  const err111 = {
                     instancePath: instancePath + "/spikes/" + i6 + "/x",
                     schemaPath: "#/$defs/position/properties/x/minimum",
                     keyword: "minimum",
@@ -2091,9 +2107,9 @@ function validate20(
                     message: "must be >= 0",
                   };
                   if (vErrors === null) {
-                    vErrors = [err110];
+                    vErrors = [err111];
                   } else {
-                    vErrors.push(err110);
+                    vErrors.push(err111);
                   }
                   errors++;
                 }
@@ -2109,7 +2125,7 @@ function validate20(
                   isFinite(data37)
                 )
               ) {
-                const err111 = {
+                const err112 = {
                   instancePath: instancePath + "/spikes/" + i6 + "/y",
                   schemaPath: "#/$defs/position/properties/y/type",
                   keyword: "type",
@@ -2117,35 +2133,20 @@ function validate20(
                   message: "must be integer",
                 };
                 if (vErrors === null) {
-                  vErrors = [err111];
+                  vErrors = [err112];
                 } else {
-                  vErrors.push(err111);
+                  vErrors.push(err112);
                 }
                 errors++;
               }
               if (typeof data37 == "number" && isFinite(data37)) {
                 if (data37 > 2147483647 || isNaN(data37)) {
-                  const err112 = {
+                  const err113 = {
                     instancePath: instancePath + "/spikes/" + i6 + "/y",
                     schemaPath: "#/$defs/position/properties/y/maximum",
                     keyword: "maximum",
                     params: { comparison: "<=", limit: 2147483647 },
                     message: "must be <= 2147483647",
-                  };
-                  if (vErrors === null) {
-                    vErrors = [err112];
-                  } else {
-                    vErrors.push(err112);
-                  }
-                  errors++;
-                }
-                if (data37 < 0 || isNaN(data37)) {
-                  const err113 = {
-                    instancePath: instancePath + "/spikes/" + i6 + "/y",
-                    schemaPath: "#/$defs/position/properties/y/minimum",
-                    keyword: "minimum",
-                    params: { comparison: ">=", limit: 0 },
-                    message: "must be >= 0",
                   };
                   if (vErrors === null) {
                     vErrors = [err113];
@@ -2154,10 +2155,25 @@ function validate20(
                   }
                   errors++;
                 }
+                if (data37 < 0 || isNaN(data37)) {
+                  const err114 = {
+                    instancePath: instancePath + "/spikes/" + i6 + "/y",
+                    schemaPath: "#/$defs/position/properties/y/minimum",
+                    keyword: "minimum",
+                    params: { comparison: ">=", limit: 0 },
+                    message: "must be >= 0",
+                  };
+                  if (vErrors === null) {
+                    vErrors = [err114];
+                  } else {
+                    vErrors.push(err114);
+                  }
+                  errors++;
+                }
               }
             }
           } else {
-            const err114 = {
+            const err115 = {
               instancePath: instancePath + "/spikes/" + i6,
               schemaPath: "#/$defs/position/type",
               keyword: "type",
@@ -2165,15 +2181,15 @@ function validate20(
               message: "must be object",
             };
             if (vErrors === null) {
-              vErrors = [err114];
+              vErrors = [err115];
             } else {
-              vErrors.push(err114);
+              vErrors.push(err115);
             }
             errors++;
           }
         }
       } else {
-        const err115 = {
+        const err116 = {
           instancePath: instancePath + "/spikes",
           schemaPath: "#/properties/spikes/type",
           keyword: "type",
@@ -2181,16 +2197,16 @@ function validate20(
           message: "must be array",
         };
         if (vErrors === null) {
-          vErrors = [err115];
+          vErrors = [err116];
         } else {
-          vErrors.push(err115);
+          vErrors.push(err116);
         }
         errors++;
       }
     }
     if (data.exitIsSolid !== undefined) {
       if (typeof data.exitIsSolid !== "boolean") {
-        const err116 = {
+        const err117 = {
           instancePath: instancePath + "/exitIsSolid",
           schemaPath: "#/properties/exitIsSolid/type",
           keyword: "type",
@@ -2198,9 +2214,9 @@ function validate20(
           message: "must be boolean",
         };
         if (vErrors === null) {
-          vErrors = [err116];
+          vErrors = [err117];
         } else {
-          vErrors.push(err116);
+          vErrors.push(err117);
         }
         errors++;
       }
@@ -2215,7 +2231,7 @@ function validate20(
           isFinite(data39)
         )
       ) {
-        const err117 = {
+        const err118 = {
           instancePath: instancePath + "/totalFood",
           schemaPath: "#/properties/totalFood/type",
           keyword: "type",
@@ -2223,35 +2239,20 @@ function validate20(
           message: "must be integer",
         };
         if (vErrors === null) {
-          vErrors = [err117];
+          vErrors = [err118];
         } else {
-          vErrors.push(err117);
+          vErrors.push(err118);
         }
         errors++;
       }
       if (typeof data39 == "number" && isFinite(data39)) {
         if (data39 > 4294967295 || isNaN(data39)) {
-          const err118 = {
+          const err119 = {
             instancePath: instancePath + "/totalFood",
             schemaPath: "#/properties/totalFood/maximum",
             keyword: "maximum",
             params: { comparison: "<=", limit: 4294967295 },
             message: "must be <= 4294967295",
-          };
-          if (vErrors === null) {
-            vErrors = [err118];
-          } else {
-            vErrors.push(err118);
-          }
-          errors++;
-        }
-        if (data39 < 0 || isNaN(data39)) {
-          const err119 = {
-            instancePath: instancePath + "/totalFood",
-            schemaPath: "#/properties/totalFood/minimum",
-            keyword: "minimum",
-            params: { comparison: ">=", limit: 0 },
-            message: "must be >= 0",
           };
           if (vErrors === null) {
             vErrors = [err119];
@@ -2260,10 +2261,25 @@ function validate20(
           }
           errors++;
         }
+        if (data39 < 0 || isNaN(data39)) {
+          const err120 = {
+            instancePath: instancePath + "/totalFood",
+            schemaPath: "#/properties/totalFood/minimum",
+            keyword: "minimum",
+            params: { comparison: ">=", limit: 0 },
+            message: "must be >= 0",
+          };
+          if (vErrors === null) {
+            vErrors = [err120];
+          } else {
+            vErrors.push(err120);
+          }
+          errors++;
+        }
       }
     }
   } else {
-    const err120 = {
+    const err121 = {
       instancePath,
       schemaPath: "#/type",
       keyword: "type",
@@ -2271,9 +2287,9 @@ function validate20(
       message: "must be object",
     };
     if (vErrors === null) {
-      vErrors = [err120];
+      vErrors = [err121];
     } else {
-      vErrors.push(err120);
+      vErrors.push(err121);
     }
     errors++;
   }

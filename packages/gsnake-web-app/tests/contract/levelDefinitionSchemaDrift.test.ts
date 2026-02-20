@@ -119,6 +119,9 @@ describe("LevelDefinition schema drift protection", () => {
     const negativeCoordinate = cloneFixture(base);
     (negativeCoordinate.food as JsonObject[])[0].x = -1;
 
+    const invalidDifficulty = cloneFixture(base);
+    invalidDifficulty.difficulty = "expert";
+
     const cases: Array<{ name: string; payload: unknown }> = [
       { name: "valid minimal fixture", payload: base },
       { name: "valid optionals fixture", payload: validOptionalsFixture },
@@ -126,6 +129,7 @@ describe("LevelDefinition schema drift protection", () => {
       { name: "invalid optional field fixture", payload: invalidOptionalShape },
       { name: "empty snake", payload: emptySnake },
       { name: "negative coordinate", payload: negativeCoordinate },
+      { name: "invalid difficulty", payload: invalidDifficulty },
       { name: "decimal id", payload: decimalId },
       { name: "decimal totalFood", payload: decimalTotalFood },
       { name: "extra top-level property", payload: extraProperty },
