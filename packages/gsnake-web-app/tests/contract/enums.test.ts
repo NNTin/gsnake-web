@@ -15,10 +15,19 @@ import {
 
 const CURRENT_DIR = path.dirname(fileURLToPath(import.meta.url));
 const TS_MODELS_PATH = path.resolve(CURRENT_DIR, "../../types/models.ts");
-const RUST_MODELS_PATH = path.resolve(
+// Root-repo mode: gsnake-core is 5 levels up (monorepo root) then sibling dir.
+// Standalone mode: detect-local-deps.js vendors models.rs to vendor/gsnake-core-src/.
+const RUST_MODELS_SIBLING = path.resolve(
   CURRENT_DIR,
   "../../../../../gsnake-core/engine/core/src/models.rs",
 );
+const RUST_MODELS_VENDOR = path.resolve(
+  CURRENT_DIR,
+  "../../../../vendor/gsnake-core-src/models.rs",
+);
+const RUST_MODELS_PATH = fs.existsSync(RUST_MODELS_SIBLING)
+  ? RUST_MODELS_SIBLING
+  : RUST_MODELS_VENDOR;
 
 function readFile(filePath: string): string {
   return fs.readFileSync(filePath, "utf8");

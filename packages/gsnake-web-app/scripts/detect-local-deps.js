@@ -68,6 +68,15 @@ const vendorFiles = [
   "gsnake_wasm_bg.wasm.d.ts",
 ];
 
+const rustModelsUrl =
+  "https://raw.githubusercontent.com/NNTin/gSnake/main/gsnake-core/engine/core/src/models.rs";
+const rustModelsVendorPath = join(
+  workspaceRoot,
+  "vendor",
+  "gsnake-core-src",
+  "models.rs",
+);
+
 console.log("[detect-local-deps] Checking dependency context...");
 console.log(`[detect-local-deps] FORCE_GIT_DEPS: ${forceGitDeps}`);
 console.log(`[detect-local-deps] Root .git exists: ${existsSync(rootGitPath)}`);
@@ -111,6 +120,26 @@ const ensureVendorWasm = async () => {
   }
 
   console.log("[detect-local-deps] ✓ Vendor WASM downloaded");
+};
+
+const ensureVendorRustModels = async () => {
+  console.log(
+    "[detect-local-deps] Downloading models.rs for standalone contract tests...",
+  );
+  mkdirSync(join(workspaceRoot, "vendor", "gsnake-core-src"), {
+    recursive: true,
+  });
+
+  const response = await fetch(rustModelsUrl);
+  if (!response.ok) {
+    throw new Error(
+      `[detect-local-deps] Failed to download ${rustModelsUrl}: ${response.status}`,
+    );
+  }
+
+  const buffer = Buffer.from(await response.arrayBuffer());
+  writeFileSync(rustModelsVendorPath, buffer);
+  console.log("[detect-local-deps] ✓ models.rs downloaded");
 };
 
 /**
@@ -218,6 +247,7 @@ const run = async () => {
   );
 
   await ensureVendorWasm();
+  await ensureVendorRustModels();
   updateDependency(vendorDependency, "standalone mode", vendorLockResolved);
 };
 
