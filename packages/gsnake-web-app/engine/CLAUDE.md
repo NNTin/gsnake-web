@@ -12,6 +12,12 @@
 
 This keeps startup behavior deterministic across all callers and avoids drift between UI parsing code and engine behavior.
 
+### Public Level API Contract
+
+- `WasmGameEngine.loadLevel(levelNumber)` is a 1-based public API; it maps to internal 0-based indexing.
+- Out-of-range calls reject via `Invalid level index: <index>` from the internal index value (for example `loadLevel(0)` rejects with `Invalid level index: -1`).
+- A second `init(...)` call after successful initialization must be a no-op, preserving existing levels/engine state and warning once.
+
 ### Frame Emission Pattern
 
 Canonical reference: `engine/frame-emission.md`
@@ -55,6 +61,7 @@ For `WasmGameEngine` unit tests, mock `gsnake-wasm` with a `vi.hoisted` state ob
 - This allows deterministic control of `init_wasm`, `getLevels`, constructor failures, and `processMove` throws.
 - To validate contract error passthrough, throw a plain `{ kind, message, context }` object from the mocked Rust engine and assert `engineError` emits the same payload.
 - For query-level startup regressions, use scenario tables and assert both selected level identity and startup event invariants (`levelChanged` then `frameChanged`, no `engineError`).
+- For public level-loading regressions, assert `loadLevel(2)` emits `levelChanged` then `frameChanged` for level 2, and include an explicit out-of-range rejection case (`loadLevel(0)`).
 
 ### KeyboardHandler Input Pattern
 

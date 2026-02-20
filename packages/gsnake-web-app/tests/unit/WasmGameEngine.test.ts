@@ -321,4 +321,64 @@ describe("WasmGameEngine", () => {
       "frameChanged",
     ]);
   });
+
+  it("loads explicit level numbers through loadLevel()", async () => {
+    const levels = [createLevel(1), createLevel(2)];
+    const engine = new WasmGameEngine();
+    const events: GameEvent[] = [];
+    engine.addEventListener((event) => events.push(event));
+
+    await engine.init(levels, 1);
+    await engine.loadLevel(2);
+
+    expect(wasmMock.constructedLevels).toEqual([levels[0], levels[1]]);
+    expect(wasmMock.getFrameCallCount).toBe(2);
+    expect(events.map((event) => event.type)).toEqual([
+      "levelChanged",
+      "frameChanged",
+      "levelChanged",
+      "frameChanged",
+    ]);
+    expect(events.at(-2)).toEqual({ type: "levelChanged", level: levels[1] });
+    expect(events.at(-1)).toEqual({
+      type: "frameChanged",
+      frame: wasmMock.frame,
+    });
+  });
+
+  it("ignores a second init() call after initialization", async () => {
+    const firstLevels = [createLevel(1)];
+    const secondLevels = [createLevel(2)];
+    const engine = new WasmGameEngine();
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+
+    await engine.init(firstLevels, 1);
+    await engine.init(secondLevels, 1);
+
+    expect(wasmMock.initWasm).toHaveBeenCalledTimes(1);
+    expect(wasmMock.initPanicHook).toHaveBeenCalledTimes(1);
+    expect(wasmMock.constructedLevels).toEqual([firstLevels[0]]);
+    expect(engine.getLevels()).toEqual(firstLevels);
+    expect(warnSpy).toHaveBeenCalledWith("WasmGameEngine already initialized");
+
+    warnSpy.mockRestore();
+  });
+
+  it("rejects loadLevel() values outside the supported range", async () => {
+    const levels = [createLevel(1), createLevel(2)];
+    const engine = new WasmGameEngine();
+    const events: GameEvent[] = [];
+    engine.addEventListener((event) => events.push(event));
+    await engine.init(levels, 1);
+
+    await expect(engine.loadLevel(0)).rejects.toThrow(
+      "Invalid level index: -1",
+    );
+
+    expect(wasmMock.constructedLevels).toEqual([levels[0]]);
+    expect(events.map((event) => event.type)).toEqual([
+      "levelChanged",
+      "frameChanged",
+    ]);
+  });
 });
