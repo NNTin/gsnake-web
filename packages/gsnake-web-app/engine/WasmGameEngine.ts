@@ -181,14 +181,30 @@ export class WasmGameEngine {
   }
 
   private handleFrameUpdate(frame: Frame): void {
+    const effectiveFrame = this.normalizeTerminalFrameStatus(frame);
     this.emitEvent({
       type: "frameChanged",
-      frame: frame,
+      frame: effectiveFrame,
     });
 
-    if (frame.state.status === "LevelComplete") {
+    if (effectiveFrame.state.status === "LevelComplete") {
       // Stay on completed level; UI handles completion messaging.
     }
+  }
+
+  private normalizeTerminalFrameStatus(frame: Frame): Frame {
+    const isFinalLevel = this.currentLevelIndex >= this.levels.length - 1;
+    if (frame.state.status !== "LevelComplete" || !isFinalLevel) {
+      return frame;
+    }
+
+    return {
+      ...frame,
+      state: {
+        ...frame.state,
+        status: "AllComplete",
+      },
+    };
   }
 
   processMove(direction: Direction): void {

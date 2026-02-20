@@ -17,6 +17,7 @@ This keeps startup behavior deterministic across all callers and avoids drift be
 - `WasmGameEngine.loadLevel(levelNumber)` is a 1-based public API; it maps to internal 0-based indexing.
 - Out-of-range calls reject via `Invalid level index: <index>` from the internal index value (for example `loadLevel(0)` rejects with `Invalid level index: -1`).
 - A second `init(...)` call after successful initialization must be a no-op, preserving existing levels/engine state and warning once.
+- `WasmGameEngine.nextLevel()` remains a terminal no-op at the final index; the wrapper still maps a final-level `LevelComplete` frame to `AllComplete` before emitting `frameChanged` so web UI can surface end-of-game flow without requiring Rust `total_levels` context.
 
 ### Frame Emission Pattern
 

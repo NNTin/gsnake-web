@@ -322,6 +322,45 @@ describe("WasmGameEngine", () => {
     ]);
   });
 
+  it("maps final-level LevelComplete frames to AllComplete and keeps nextLevel() as a terminal no-op", async () => {
+    const levels = [createLevel(1), createLevel(2)];
+    const engine = new WasmGameEngine();
+    const events: GameEvent[] = [];
+    engine.addEventListener((event) => events.push(event));
+
+    await engine.init(levels, 1);
+    await engine.nextLevel();
+
+    const levelCompleteFrame = createFrame("LevelComplete");
+    const allCompleteFrame = {
+      ...levelCompleteFrame,
+      state: {
+        ...levelCompleteFrame.state,
+        currentLevel: 2,
+        moves: 4,
+        status: "AllComplete" as const,
+      },
+    };
+    wasmMock.frameCallback?.({
+      ...levelCompleteFrame,
+      state: {
+        ...levelCompleteFrame.state,
+        currentLevel: 2,
+        moves: 4,
+      },
+    });
+
+    const beforeNoopEventCount = events.length;
+    await engine.nextLevel();
+
+    expect(wasmMock.constructedLevels).toEqual([levels[0], levels[1]]);
+    expect(events.at(-1)).toEqual({
+      type: "frameChanged",
+      frame: allCompleteFrame,
+    });
+    expect(events).toHaveLength(beforeNoopEventCount);
+  });
+
   it("loads explicit level numbers through loadLevel()", async () => {
     const levels = [createLevel(1), createLevel(2)];
     const engine = new WasmGameEngine();
