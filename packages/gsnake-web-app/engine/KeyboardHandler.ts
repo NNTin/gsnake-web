@@ -25,6 +25,12 @@ export class KeyboardHandler {
     ]);
     this.boundHandler = this.handleKeyPress.bind(this);
 
+    // KeyboardHandler subscribes directly to the gameState store so it can
+    // gate key handling on the current status without requiring a status
+    // parameter on every keypress. The tradeoff is tight coupling to the
+    // store module: tests that construct a KeyboardHandler must be aware that
+    // currentStatus starts from the store default ("Playing") unless they set
+    // the store value explicitly before dispatching key events.
     this.unsubscribe = gameState.subscribe((state) => {
       this.currentStatus = state.status;
     });
@@ -40,7 +46,7 @@ export class KeyboardHandler {
     const lowerKey = key.toLowerCase();
 
     // 2. Prevent Defaults
-    // Always prevent: Space, Tab, Arrows
+    // Always prevent: Space, Tab, Arrows, WASD (movement + action keys)
     if (
       [
         " ",
@@ -50,7 +56,8 @@ export class KeyboardHandler {
         "ArrowDown",
         "ArrowLeft",
         "ArrowRight",
-      ].includes(key)
+      ].includes(key) ||
+      ["w", "a", "s", "d"].includes(lowerKey)
     ) {
       event.preventDefault();
     }
@@ -66,9 +73,17 @@ export class KeyboardHandler {
       case "GameOver":
         this.handleGameOverState(event, lowerKey);
         break;
+      case "LevelComplete":
+        // Level-complete UI handles progression; keyboard is intentionally a no-op here.
+        break;
       case "AllComplete":
         this.handleAllCompleteState(event, lowerKey);
         break;
+      default: {
+        // Exhaustiveness guard: catches unhandled GameStatus variants at compile time.
+        const _exhaustive: never = this.currentStatus;
+        console.warn("Unhandled game status:", _exhaustive);
+      }
     }
   }
 
@@ -88,9 +103,6 @@ export class KeyboardHandler {
 
     const direction = this.keyMap.get(event.key);
     if (direction) {
-      // Prevent default for WASD to avoid typing/scrolling if not handled above
-      if (!event.defaultPrevented) event.preventDefault();
-
       this.gameEngine.processMove(direction);
     }
   }

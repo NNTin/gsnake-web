@@ -46,8 +46,8 @@ function updateContractDebug(payload: {
   };
 }
 
-export function connectGameEngineToStores(engine: WasmGameEngine): void {
-  engine.addEventListener((event: GameEvent) => {
+export function connectGameEngineToStores(engine: WasmGameEngine): () => void {
+  const listener = (event: GameEvent) => {
     switch (event.type) {
       case "levelChanged":
         level.set(event.level);
@@ -64,9 +64,18 @@ export function connectGameEngineToStores(engine: WasmGameEngine): void {
         updateContractDebug({ error: event.error });
         break;
     }
-  });
+  };
+  engine.addEventListener(listener);
+  return () => engine.removeEventListener(listener);
 }
 
+// Counts snake segments by scanning the full grid on each frame.
+// For small grids this is negligible, but it scales O(width*height).
+//
+// Future improvement path (US-013): expose snakeLength directly in GameState
+// from the Rust engine (via ts-rs codegen) and read it as
+// `frame.state.snakeLength` here, eliminating the per-frame scan entirely.
+// Until GameState includes that field, the grid scan is the authoritative path.
 function countSnakeSegments(frame: Frame): number {
   let count = 0;
   for (const row of frame.grid) {

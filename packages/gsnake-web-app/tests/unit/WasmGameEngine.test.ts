@@ -222,6 +222,23 @@ describe("WasmGameEngine", () => {
     }
   });
 
+  it("emits initializationFailed error when getLevels returns invalid payload", async () => {
+    const engine = new WasmGameEngine();
+    const events: GameEvent[] = [];
+    engine.addEventListener((event) => events.push(event));
+    wasmMock.getLevels.mockReturnValueOnce("not-a-valid-level-array");
+
+    await expect(engine.init()).rejects.toThrow();
+
+    const errorEvent = events.find((event) => event.type === "engineError");
+    expect(errorEvent).toBeDefined();
+    if (errorEvent && errorEvent.type === "engineError") {
+      expect(errorEvent.error.kind).toBe("initializationFailed");
+      expect(errorEvent.error.message).toBe("Failed to load levels");
+      expect(errorEvent.error.context?.detail).toContain("invalid level data");
+    }
+  });
+
   it("emits initializationFailed error when no levels are available", async () => {
     const engine = new WasmGameEngine();
     const events: GameEvent[] = [];
@@ -361,6 +378,27 @@ describe("WasmGameEngine", () => {
     expect(events).toHaveLength(beforeNoopEventCount);
   });
 
+  it("ignores onFrame callbacks from stale engine instances after level switch", async () => {
+    const levels = [createLevel(1), createLevel(2)];
+    const engine = new WasmGameEngine();
+    const events: GameEvent[] = [];
+    engine.addEventListener((event) => events.push(event));
+
+    await engine.init(levels, 1);
+
+    // Capture the level-1 onFrame callback before it gets replaced
+    const staleCallback = wasmMock.frameCallback;
+
+    await engine.loadLevel(2);
+
+    const eventCountAfterSwitch = events.length;
+
+    // Fire the stale level-1 callback — the generation guard should ignore it
+    staleCallback?.(createFrame("Playing"));
+
+    expect(events).toHaveLength(eventCountAfterSwitch);
+  });
+
   it("loads explicit level numbers through loadLevel()", async () => {
     const levels = [createLevel(1), createLevel(2)];
     const engine = new WasmGameEngine();
@@ -403,21 +441,60 @@ describe("WasmGameEngine", () => {
     warnSpy.mockRestore();
   });
 
-  it("rejects loadLevel() values outside the supported range", async () => {
+  it("rejects concurrent init() calls during in-flight initialization", async () => {
+    const levels = [createLevel(1)];
+    const engine = new WasmGameEngine();
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+
+    // Start two inits concurrently; second should be rejected by initInProgress guard
+    const first = engine.init(levels, 1);
+    const second = engine.init(levels, 1);
+
+    await Promise.all([first, second]);
+
+    expect(wasmMock.initWasm).toHaveBeenCalledTimes(1);
+    expect(wasmMock.constructedLevels).toHaveLength(1);
+    expect(warnSpy).toHaveBeenCalledWith("WasmGameEngine already initialized");
+
+    warnSpy.mockRestore();
+  });
+
+  it("resets initialization guard on failure to allow retry", async () => {
+    const levels = [createLevel(1)];
+    const engine = new WasmGameEngine();
+    const consoleError = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
+
+    // First init fails
+    wasmMock.initWasm.mockRejectedValueOnce(new Error("init failed"));
+    await expect(engine.init(levels, 1)).rejects.toThrow("init failed");
+
+    // initInProgress should be reset; second init should succeed
+    await engine.init(levels, 1);
+
+    expect(wasmMock.initWasm).toHaveBeenCalledTimes(2);
+    expect(engine.getLevels()).toEqual(levels);
+
+    consoleError.mockRestore();
+  });
+
+  it("emits engineError for loadLevel() values outside the supported range", async () => {
     const levels = [createLevel(1), createLevel(2)];
     const engine = new WasmGameEngine();
     const events: GameEvent[] = [];
     engine.addEventListener((event) => events.push(event));
     await engine.init(levels, 1);
 
-    await expect(engine.loadLevel(0)).rejects.toThrow(
-      "Invalid level index: -1",
-    );
+    // US-007: loadLevel catches internally and emits engineError instead of throwing
+    await engine.loadLevel(0);
 
     expect(wasmMock.constructedLevels).toEqual([levels[0]]);
-    expect(events.map((event) => event.type)).toEqual([
-      "levelChanged",
-      "frameChanged",
-    ]);
+    const eventTypes = events.map((event) => event.type);
+    expect(eventTypes).toContain("engineError");
+    const errorEvent = events.find((e) => e.type === "engineError");
+    if (errorEvent && errorEvent.type === "engineError") {
+      expect(errorEvent.error.message).toContain("Failed to load level 0");
+    }
   });
 });

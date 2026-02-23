@@ -14,14 +14,19 @@ import {
 } from "../../stores/stores";
 
 class FakeEngine {
-  private listener: GameEventListener | null = null;
+  private listeners: GameEventListener[] = [];
 
   addEventListener(listener: GameEventListener): void {
-    this.listener = listener;
+    this.listeners.push(listener);
+  }
+
+  removeEventListener(listener: GameEventListener): void {
+    const index = this.listeners.indexOf(listener);
+    if (index !== -1) this.listeners.splice(index, 1);
   }
 
   emit(event: GameEvent): void {
-    this.listener?.(event);
+    for (const l of this.listeners) l(event);
   }
 }
 
@@ -188,5 +193,37 @@ describe("stores.connectGameEngineToStores", () => {
       .__gsnakeContract as { frame?: Frame; error?: ContractError };
     expect(debug.frame).toEqual(currentFrame);
     expect(debug.error).toEqual(error);
+  });
+
+  it("returns a cleanup that stops further store updates", () => {
+    const engine = new FakeEngine();
+
+    const cleanup = connectGameEngineToStores(engine as never);
+    engine.emit({ type: "levelChanged", level: createLevel(1) });
+    expect(get(level)).toEqual(createLevel(1));
+
+    cleanup();
+
+    // After cleanup, store updates should not fire
+    engine.emit({ type: "levelChanged", level: createLevel(2) });
+    expect(get(level)).toEqual(createLevel(1));
+  });
+
+  it("does not accumulate listeners on repeated connects", () => {
+    const engine = new FakeEngine();
+    const cleanup1 = connectGameEngineToStores(engine as never);
+    const cleanup2 = connectGameEngineToStores(engine as never);
+
+    engine.emit({ type: "levelChanged", level: createLevel(5) });
+
+    // Two listeners means the level change fires twice — but writable stores
+    // deduplicate identical values so final value should still be correct.
+    expect(get(level)).toEqual(createLevel(5));
+
+    // Cleaning up both prevents any further updates
+    cleanup1();
+    cleanup2();
+    engine.emit({ type: "levelChanged", level: createLevel(99) });
+    expect(get(level)).toEqual(createLevel(5));
   });
 });

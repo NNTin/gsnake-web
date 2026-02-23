@@ -15,6 +15,9 @@
   let lastCompletedId: number | null = null;
   let isInitializing = true;
   let isMounted = true;
+  // Cleanup returned by connectGameEngineToStores; called on destroy to prevent
+  // zombie engine instances from writing to stores after component unmount.
+  let disconnectEngine: (() => void) | null = null;
 
   onMount(async () => {
     // Parse URL param for start level
@@ -24,7 +27,7 @@
     const testMode = urlParams.get('test') === 'true';
 
     // Connect stores BEFORE init so we catch the initial events
-    connectGameEngineToStores(gameEngine);
+    disconnectEngine = connectGameEngineToStores(gameEngine);
     keyboardHandler = new KeyboardHandler(gameEngine);
     keyboardHandler.attach();
 
@@ -76,6 +79,7 @@
     if (keyboardHandler) {
       keyboardHandler.detach();
     }
+    disconnectEngine?.();
   });
 
   $: if ($gameState.status !== 'LevelComplete') {
