@@ -10,6 +10,7 @@
     "isolatedModules": true,
     "strict": true,
     "sourceMap": true,
+    "noEmit": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true
@@ -20,6 +21,7 @@
     "dist",
     "coverage",
     "pkg",
+    "scripts",
     "tests",
     "svelte.config.js",
     "vendor"

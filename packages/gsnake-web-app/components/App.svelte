@@ -120,7 +120,12 @@
 
   async function fetchTestLevel(): Promise<{ levels: LevelDefinition[] | null; error?: string }> {
     try {
-      const response = await fetch('http://localhost:3001/api/test-level');
+      const urlParams = new URLSearchParams(window.location.search);
+      const runId = urlParams.get('run');
+      const apiUrl = runId
+        ? `http://localhost:3001/api/test-level?run=${encodeURIComponent(runId)}`
+        : 'http://localhost:3001/api/test-level';
+      const response = await fetch(apiUrl);
       if (!response.ok) {
         return {
           levels: null,
