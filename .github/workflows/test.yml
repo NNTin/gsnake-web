@@ -27,6 +27,11 @@ jobs:
           repository: NNTin/gSnake
           path: gsnake-root
 
+      - name: Initialize gsnake-levels submodule
+        if: ${{ env.ACT != 'true' }}
+        working-directory: gsnake-root
+        run: git submodule update --init gsnake-levels
+
       - name: Link root-repo dependencies
         if: ${{ env.ACT != 'true' }}
         run: |
