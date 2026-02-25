@@ -21,9 +21,13 @@
     "test:coverage": "npm run test:coverage -w gsnake-web-app",
     "coverage": "npm run coverage -w gsnake-web-app",
     "test:watch": "npm run test:watch -w gsnake-web-app",
-    "validate:sprites": "node scripts/validate-sprites.js"
+    "validate:sprites": "node scripts/validate-sprites.js",
+    "knip": "knip",
+    "jscpd": "jscpd"
   },
   "devDependencies": {
-    "concurrently": "^9.2.1"
+    "concurrently": "^9.2.1",
+    "jscpd": "^4.0.8",
+    "knip": "^5.85.0"
   }
 }

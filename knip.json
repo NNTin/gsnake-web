@@ -1,0 +1,14 @@
+{
+  "$schema": "https://unpkg.com/knip@latest/schema.json",
+  "workspaces": {
+    "packages/gsnake-web-app": {
+      "entry": ["main.ts", "vitest.config.ts"],
+      "project": ["**/*.{ts,svelte}", "!tests/**"]
+    },
+    "packages/gsnake-web-ui": {
+      "entry": ["index.js"],
+      "project": ["**/*.{svelte,js}", "!scripts/**", "!dist/**"]
+    }
+  },
+  "ignore": ["**/node_modules/**", "**/dist/**", "**/coverage/**", "vendor/**"]
+}
